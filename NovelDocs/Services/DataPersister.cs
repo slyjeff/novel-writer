@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 using NovelDocs.Entity;
 
@@ -14,6 +16,11 @@ internal sealed class DataPersister : IDataPersister {
     private Data? _data;
 
     public void Save() {
+        var currentNovel = _data.Novels.FirstOrDefault(x => x.Name == _data.LastOpenedNovel);
+        if (currentNovel != null) {
+            currentNovel.LastModified = DateTime.Now;
+        }
+
         var json = JsonConvert.SerializeObject(_data);
         File.WriteAllText(FileName, json);
     }

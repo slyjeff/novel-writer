@@ -11,6 +11,7 @@
   <ItemGroup>
     <None Remove="Images\Add.png" />
     <None Remove="Images\Characters.png" />
+    <None Remove="Images\Close.png" />
     <None Remove="Images\Delete.png" />
     <None Remove="Images\Document.png" />
     <None Remove="Images\Documents.png" />
@@ -30,10 +31,17 @@
   <ItemGroup>
     <Resource Include="Images\Add.png" />
     <Resource Include="Images\Characters.png" />
+    <Resource Include="Images\Close.png" />
     <Resource Include="Images\Delete.png" />
     <Resource Include="Images\Document.png" />
     <Resource Include="Images\Documents.png" />
     <Resource Include="Images\EmptyDocument.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Pages\NovelDetails\NovelDetailsView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
 </Project>
