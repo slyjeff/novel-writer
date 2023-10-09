@@ -1,10 +1,10 @@
 ﻿using System.Windows;
-using System.Windows.Navigation;
 using Microsoft.Extensions.DependencyInjection;
 using NovelDocs.Extensions;
 using NovelDocs.Initialization;
 using NovelDocs.PageControls;
 using NovelDocs.Pages.Main;
+using NovelDocs.Services;
 
 namespace NovelDocs; 
 
@@ -13,6 +13,7 @@ public partial class App {
 
     public App() {
         var services = new ServiceCollection();
+        services.AddSingleton<IDataPersister, DataPersister>();
         _serviceProvider = services.BuildServiceProvider();
 
         PageControllerConfiguration.PageDependencyResolver = new PageDependencyResolver(_serviceProvider);

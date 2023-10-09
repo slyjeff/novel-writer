@@ -9,12 +9,31 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\Add.png" />
+    <None Remove="Images\Characters.png" />
+    <None Remove="Images\Delete.png" />
+    <None Remove="Images\Document.png" />
+    <None Remove="Images\Documents.png" />
+    <None Remove="Images\EmptyDocument.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="Hopstarter-Soft-Scraps-Document-Copy.ico" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\Add.png" />
+    <Resource Include="Images\Characters.png" />
+    <Resource Include="Images\Delete.png" />
+    <Resource Include="Images\Document.png" />
+    <Resource Include="Images\Documents.png" />
+    <Resource Include="Images\EmptyDocument.png" />
   </ItemGroup>
 
 </Project>

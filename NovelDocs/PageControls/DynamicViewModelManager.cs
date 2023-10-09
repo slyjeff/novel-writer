@@ -117,7 +117,7 @@ internal static class DynamicViewModelManager {
                   && !setter.IsFinal
             select property;
 
-        var notifyPropertyChanged = viewModel.GetMethod("NotifyPropertyChanged", BindingFlags.Public | BindingFlags.Instance);
+        var onPropertyChanged = viewModel.GetMethod("OnPropertyChanged", BindingFlags.Public | BindingFlags.Instance);
 
         const MethodAttributes setterAttributes = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Virtual;
         foreach (var property in virtualProperties) {
@@ -134,7 +134,7 @@ internal static class DynamicViewModelManager {
 
             generator.Emit(OpCodes.Ldarg_0);                     //load this
             generator.Emit(OpCodes.Ldstr, property.Name);        //load the name of the property
-            generator.Emit(OpCodes.Call, notifyPropertyChanged!); //call the notify property changed method
+            generator.Emit(OpCodes.Call, onPropertyChanged!); //call the notify property changed method
 
             generator.Emit(OpCodes.Ret); //return
         }
