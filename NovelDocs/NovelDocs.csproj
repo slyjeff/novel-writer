@@ -10,16 +10,27 @@
 
   <ItemGroup>
     <None Remove="Images\Add.png" />
+    <None Remove="Images\Chapter.png" />
     <None Remove="Images\Characters.png" />
     <None Remove="Images\Close.png" />
     <None Remove="Images\Delete.png" />
     <None Remove="Images\Document.png" />
     <None Remove="Images\Documents.png" />
     <None Remove="Images\EmptyDocument.png" />
+    <None Remove="Images\Manuscript.png" />
+    <None Remove="Images\Scene.png" />
+    <None Remove="Images\Section.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Hopstarter-Soft-Scraps-Document-Copy.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\Chapter.png" />
+    <Resource Include="Images\Manuscript.png" />
+    <Resource Include="Images\Scene.png" />
+    <Resource Include="Images\Section.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,6 +50,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Pages\CharacterDetails\CharacterDetailsView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Pages\SectionDetails\SectionDetailsView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Pages\NovelDetails\NovelDetailsView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

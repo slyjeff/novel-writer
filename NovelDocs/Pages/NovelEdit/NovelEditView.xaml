@@ -15,24 +15,15 @@
 
         <DockPanel LastChildFill="False"
                Background="Gray">
-            <DockPanel.Resources>
-                <Style TargetType="{x:Type Button}" 
-                   BasedOn="{StaticResource {x:Type Button}}">
-                    <Setter Property="Height" Value="50" />
-                    <Setter Property="Width" Value="50" />
-                    <Setter Property="Margin" Value="5" />
-                </Style>
-            </DockPanel.Resources>
 
             <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
             <Button DockPanel.Dock="Right" 
-                ToolTip="Close Novel"
-                Command="{Binding CloseNovel}">
-                <Image Width="40" DockPanel.Dock="Top">
-                    <Image.Source>
-                        <BitmapImage DecodePixelWidth="40" UriSource="/Images/Close.png" />
-                    </Image.Source>
-                </Image>
+                    ToolTip="Close Novel"
+                    Margin="10,5,10,5"
+                    Command="{Binding CloseNovel}">
+                <TextBlock Margin="7,5,7,5"
+                           FontSize="16"
+                           Text="Close Novel" />
             </Button>
         </DockPanel>
 
@@ -44,8 +35,109 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="450"/>
             </Grid.ColumnDefinitions>
-            <TreeView Grid.Column="0" Background="#373737">
+            
+            <TreeView Grid.Column="0" Background="#373737" ItemsSource="{Binding TreeItems}">
+                <TreeView.Resources>
+                    <Style TargetType="{x:Type TreeViewItem}" d:DataContext="{d:DesignInstance novelEdit:ITreeItem}">
+                        <Setter Property="IsExpanded" Value="True"/>
+                        <Setter Property="IsSelected" Value="{Binding IsSelected}"></Setter>
+                    </Style>
+
+                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
+                                     Color="Gray" />
+                    <!--<SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
+                                     Color="Black" />-->
+                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
+                                     Color="Gray" />
+                    <!--<SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
+                                     Color="Black" />-->
+
+                    <HierarchicalDataTemplate DataType="{x:Type novelEdit:ManuscriptTreeItem}" ItemsSource="{Binding ManuscriptElements}">
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0, 0, 10, 0">
+                            <StackPanel.ContextMenu>
+                                <ContextMenu>
+                                    <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                                    <MenuItem Header="Add Section" Command="{Binding DataContext.ViewModel.AddSection, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"/>
+                                    
+                                    <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                                    <MenuItem Header="Add Chapter" Command="{Binding DataContext.ViewModel.AddChapter, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"/>
+                                </ContextMenu>
+                            </StackPanel.ContextMenu>
+
+                            <Image Width="50" DockPanel.Dock="Top">
+                                <Image.Source>
+                                    <BitmapImage DecodePixelWidth="50" UriSource="/images/Manuscript.png" />
+                                </Image.Source>
+                            </Image>
+
+                            <TextBlock FontSize="20"
+                                       Foreground="White"
+                                       VerticalAlignment="Center"
+                                       Text="Manuscript" />
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+
+                    <DataTemplate DataType="{x:Type novelEdit:ManuscriptElementTreeItem}">
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0, 0, 10, 0">
+                            <Image Width="50" DockPanel.Dock="Top">
+                                <Image.Source>
+                                    <BitmapImage DecodePixelWidth="50" UriSource="{Binding ImageUriSource}" />
+                                </Image.Source>
+                            </Image>
+
+                            <TextBlock FontSize="20"
+                                       Foreground="White"
+                                       VerticalAlignment="Center"
+                                       Text="{Binding Name}" />
+                        </StackPanel>
+                    </DataTemplate>
+
+                    <HierarchicalDataTemplate DataType="{x:Type novelEdit:CharactersTreeItem}" ItemsSource="{Binding Characters}">
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="5, 5, 10, 5"
+                                    HorizontalAlignment="Stretch">
+
+                            <StackPanel.ContextMenu>
+                                <ContextMenu>
+                                    <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                                    <MenuItem Header="Add Character" Command="{Binding DataContext.ViewModel.AddCharacter, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"/>
+                                </ContextMenu>
+                            </StackPanel.ContextMenu>
+
+
+                            <Image Width="30" DockPanel.Dock="Top">
+                                <Image.Source>
+                                    <BitmapImage DecodePixelWidth="30" UriSource="/images/Characters.png" />
+                                </Image.Source>
+                            </Image>
+                            <TextBlock FontSize="20"
+                                       Margin="20, 0, 0, 0"
+                                       Foreground="White"
+                                       VerticalAlignment="Center"
+                                       Text="Characters" />
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+
+                    <DataTemplate DataType="{x:Type novelEdit:CharacterTreeItem}">
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0, 0, 10, 0">
+                            <!--<Image Width="50" DockPanel.Dock="Top">
+                                <Image.Source>
+                                    <BitmapImage DecodePixelWidth="50" UriSource="{Binding ImageUriSource}" />
+                                </Image.Source>
+                            </Image>-->
+
+                            <TextBlock FontSize="20"
+                                       Foreground="White"
+                                       VerticalAlignment="Center"
+                                       Text="{Binding Name}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </TreeView.Resources>
             </TreeView>
+
             <GridSplitter Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" ResizeBehavior="CurrentAndNext"/>
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" ResizeBehavior="CurrentAndNext"/>
             <ScrollViewer Grid.Column="2"

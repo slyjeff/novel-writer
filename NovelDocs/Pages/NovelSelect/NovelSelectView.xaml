@@ -32,7 +32,7 @@
                                VerticalAlignment="Stretch">
                         <Image Width="150" DockPanel.Dock="Top">
                             <Image.Source>
-                                <BitmapImage DecodePixelWidth="150" UriSource="{Binding UriSource}" />
+                                <BitmapImage DecodePixelWidth="150" UriSource="{Binding ImageUriSource}" />
                             </Image.Source>
                         </Image>
                         <TextBlock DockPanel.Dock="Bottom"

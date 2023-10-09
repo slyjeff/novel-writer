@@ -3,6 +3,63 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Startup="App_OnStartup">
     <Application.Resources>
+        <Style TargetType="{x:Type ContextMenu}">
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ContextMenu}">
+                        <Border BorderThickness="1" CornerRadius="4" BorderBrush="Black" x:Name="Border" Background="White">
+                            <StackPanel ClipToBounds="True" Orientation="Vertical" IsItemsHost="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter TargetName="Border" Property="Background" Value="DarkSlateBlue" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="{x:Type MenuItem}">
+            <Setter Property="Background" Value="Indigo" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type MenuItem}">
+                        <Border x:Name="Bd" 
+                                Padding="10,5,10,5" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="0" 
+                                Background="{TemplateBinding Background}" 
+                                SnapsToDevicePixels="True" 
+                                Uid="Border_38">
+                            <ContentPresenter x:Name="ContentPresenter"  
+                                              Content="{TemplateBinding Header}" 
+                                              Grid.Column="1" 
+                                              ContentSource="Header" 
+                                              Margin="{TemplateBinding Padding}" 
+                                              RecognizesAccessKey="True" 
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                              Uid="ContentPresenter_33"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter Property="Background" TargetName="Bd" Value="BlueViolet"/>
+                                <Setter Property="BorderBrush" TargetName="Bd" Value="DarkSlateBlue"/>
+                            </Trigger>
+                            <Trigger Property="IsHighlighted" Value="False">
+                                <Setter Property="Background" TargetName="Bd" Value="Indigo"/>
+                                <Setter Property="BorderBrush" TargetName="Bd" Value="DarkSlateBlue"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style TargetType="{x:Type Button}">
             <Setter Property="Background" Value="Indigo" />
             <Setter Property="Foreground" Value="White" />
