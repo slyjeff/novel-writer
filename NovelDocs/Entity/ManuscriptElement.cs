@@ -2,7 +2,7 @@
 
 namespace NovelDocs.Entity; 
 
-public enum ManuscriptElementType { Section, Paragraph, Scene }
+public enum ManuscriptElementType { Section, Scene }
 
 public sealed class ManuscriptElement {
     public string Name { get; set; } = string.Empty;

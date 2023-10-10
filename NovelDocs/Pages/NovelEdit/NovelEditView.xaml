@@ -38,19 +38,15 @@
             
             <TreeView Grid.Column="0" Background="#373737" ItemsSource="{Binding TreeItems}">
                 <TreeView.Resources>
-                    <Style TargetType="{x:Type TreeViewItem}" d:DataContext="{d:DesignInstance novelEdit:ITreeItem}">
-                        <Setter Property="IsExpanded" Value="True"/>
+                    <Style TargetType="{x:Type TreeViewItem}" d:DataContext="{d:DesignInstance novelEdit:INovelTreeItem}">
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded}"/>
                         <Setter Property="IsSelected" Value="{Binding IsSelected}"></Setter>
                     </Style>
 
                     <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
                                      Color="Gray" />
-                    <!--<SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
-                                     Color="Black" />-->
                     <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
                                      Color="Gray" />
-                    <!--<SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
-                                     Color="Black" />-->
 
                     <HierarchicalDataTemplate DataType="{x:Type novelEdit:ManuscriptTreeItem}" ItemsSource="{Binding ManuscriptElements}">
                         <StackPanel Orientation="Horizontal"
@@ -58,10 +54,12 @@
                             <StackPanel.ContextMenu>
                                 <ContextMenu>
                                     <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
-                                    <MenuItem Header="Add Section" Command="{Binding DataContext.ViewModel.AddSection, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"/>
+                                    <MenuItem Header="Add Section"
+                                              Command="{Binding DataContext.ViewModel.AddSection, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"/>
                                     
                                     <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
-                                    <MenuItem Header="Add Chapter" Command="{Binding DataContext.ViewModel.AddChapter, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"/>
+                                    <MenuItem Header="Add Scene"
+                                              Command="{Binding DataContext.ViewModel.AddScene, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"/>
                                 </ContextMenu>
                             </StackPanel.ContextMenu>
 
@@ -78,9 +76,32 @@
                         </StackPanel>
                     </HierarchicalDataTemplate>
 
-                    <DataTemplate DataType="{x:Type novelEdit:ManuscriptElementTreeItem}">
+                    <HierarchicalDataTemplate DataType="{x:Type novelEdit:ManuscriptElementTreeItem}" ItemsSource="{Binding ManuscriptElements}">
                         <StackPanel Orientation="Horizontal"
                                     Margin="0, 0, 10, 0">
+                            
+                            <StackPanel.ContextMenu>
+                                <ContextMenu>
+                                    <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                                    <MenuItem Header="Add Section"
+                                              Visibility="{Binding CanAddSection, Converter={StaticResource IsVisible}}"
+                                              Command="{Binding DataContext.ViewModel.AddSection, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"
+                                              CommandParameter="{Binding}"/>
+
+                                    <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                                    <MenuItem Header="Add Scene"
+                                              Visibility="{Binding CanAddScene, Converter={StaticResource IsVisible}}"
+                                              Command="{Binding DataContext.ViewModel.AddScene, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"
+                                              CommandParameter="{Binding}"/>
+
+                                    <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                                    <MenuItem Header="Delete"
+                                              Visibility="{Binding CanDelete, Converter={StaticResource IsVisible}}"
+                                              Command="{Binding DataContext.ViewModel.DeleteManuscriptElement, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"
+                                              CommandParameter="{Binding}"/>
+                                </ContextMenu>
+                            </StackPanel.ContextMenu>
+
                             <Image Width="50" DockPanel.Dock="Top">
                                 <Image.Source>
                                     <BitmapImage DecodePixelWidth="50" UriSource="{Binding ImageUriSource}" />
@@ -92,7 +113,7 @@
                                        VerticalAlignment="Center"
                                        Text="{Binding Name}" />
                         </StackPanel>
-                    </DataTemplate>
+                    </HierarchicalDataTemplate>
 
                     <HierarchicalDataTemplate DataType="{x:Type novelEdit:CharactersTreeItem}" ItemsSource="{Binding Characters}">
                         <StackPanel Orientation="Horizontal"

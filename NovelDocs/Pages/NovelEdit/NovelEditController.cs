@@ -40,7 +40,7 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
                 continue;
             }
 
-            var treeItem = new ManuscriptElementTreeItem(element, SectionSelected);
+            var treeItem = new ManuscriptElementTreeItem(element, ViewModel, SectionSelected);
             ViewModel.Manuscript.ManuscriptElements.Add(treeItem);
         }
 
@@ -68,10 +68,27 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         ViewModel.EditDataView = null!;
     }
 
-    private async Task CharacterSelected(CharacterTreeItem treeItem) {
+    private async void CharacterSelected(CharacterTreeItem treeItem) {
         var characterDetailsController = _serviceProvider.CreateInstance<CharacterDetailsController>();
         await characterDetailsController.Initialize(treeItem);
         ViewModel.EditDataView = characterDetailsController.View;
+    }
+
+    private void AddManuscriptElement(ManuscriptElementTreeItem? parent, ManuscriptElement newManuscriptElement) {
+        var newTreeItem = new ManuscriptElementTreeItem(newManuscriptElement, ViewModel, SectionSelected) {
+            Parent = parent
+        };
+        if (parent == null) {
+            _novel.ManuscriptElements.Add(newManuscriptElement);
+            ViewModel.Manuscript.ManuscriptElements.Add(newTreeItem);
+        } else {
+            parent.ManuscriptElement.ManuscriptElements.Add(newManuscriptElement);
+            parent.ManuscriptElements.Add(newTreeItem);
+        }
+
+        _dataPersister.Save();
+
+        newTreeItem.IsSelected = true;
     }
 
     [Command]
@@ -82,21 +99,37 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     }
 
     [Command]
-    public void AddSection() {
+    public void AddSection(ManuscriptElementTreeItem? parent) {
         var section = new ManuscriptElement {
             Name = "New Section",
             Type = ManuscriptElementType.Section
         };
-        _novel.ManuscriptElements.Add(section);
-        _dataPersister.Save();
 
-        var treeItem = new ManuscriptElementTreeItem(section, SectionSelected);
-        ViewModel.Manuscript.ManuscriptElements.Add(treeItem);
-        treeItem.IsSelected = true;
+        AddManuscriptElement(parent, section);
     }
 
     [Command]
-    public void AddChapter() {
+    public void AddScene(ManuscriptElementTreeItem? parent) {
+        var scene = new ManuscriptElement {
+            Name = "New Scene",
+            Type = ManuscriptElementType.Scene
+        };
+
+        AddManuscriptElement(parent, scene);
+    }
+
+    [Command]
+    public void DeleteManuscriptElement(ManuscriptElementTreeItem itemToDelete) {
+        if (itemToDelete.Parent == null) {
+            _novel.ManuscriptElements.Remove(itemToDelete.ManuscriptElement);
+            ViewModel.Manuscript.ManuscriptElements.Remove(itemToDelete);
+        } else {
+            var parent = itemToDelete.Parent;
+            parent.ManuscriptElement.ManuscriptElements.Remove(itemToDelete.ManuscriptElement);
+            parent.ManuscriptElements.Remove(itemToDelete);
+        }
+
+        _dataPersister.Save();
     }
 
     [Command]

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using NovelDocs.Entity;
 using NovelDocs.PageControls;
 using NovelDocs.Pages.GoogleDoc;
@@ -23,18 +22,19 @@ public abstract class NovelEditViewModel : ViewModel {
     public CharactersTreeItem Characters => (CharactersTreeItem)TreeItems[1];
 
     public IList<object> TreeItems { get; } = new List<object> {
-        new ManuscriptTreeItem(),
-        new CharactersTreeItem()
+        new ManuscriptTreeItem { IsExpanded = true },
+        new CharactersTreeItem{ IsExpanded = true },
     };
 }
 
-public interface ITreeItem {
+public interface INovelTreeItem {
     string Name { get; }
 
     public bool IsSelected { get; set; }
+    public bool IsExpanded { get; set; }
 }
 
-public abstract class TopLevelTreeItem : ITreeItem {
+public abstract class NovelTreeItem : INovelTreeItem {
     public event Action? Selected;
 
     public abstract string Name {get;
@@ -48,52 +48,62 @@ public abstract class TopLevelTreeItem : ITreeItem {
             Selected?.Invoke();
         }
     }
+    public bool IsExpanded { get; set; }
 
-   public NovelEditViewModel ViewModel { get; set; } = null!; //set in constructor;
+    public NovelEditViewModel ViewModel { get; set; } = null!; //set in constructor;
 }
 
-public sealed class ManuscriptTreeItem : TopLevelTreeItem {
+public sealed class ManuscriptTreeItem : NovelTreeItem {
     public override string Name => "Manuscript";
 
     public IList<ManuscriptElementTreeItem> ManuscriptElements { get; } = new ObservableCollection<ManuscriptElementTreeItem>();
 }
 
-public sealed class CharactersTreeItem : TopLevelTreeItem {
+public sealed class CharactersTreeItem : NovelTreeItem {
     public override string Name => "Characters";
     public IList<CharacterTreeItem> Characters { get; } = new ObservableCollection<CharacterTreeItem>();
 }
 
-public sealed class ManuscriptElementTreeItem : ITreeItem, INotifyPropertyChanged {
-    private readonly Action<ManuscriptElementTreeItem> _selected;
-
-    public ManuscriptElementTreeItem(ManuscriptElement manuscriptElement, Action<ManuscriptElementTreeItem> selected) {
+public sealed class ManuscriptElementTreeItem : NovelTreeItem, INotifyPropertyChanged {
+    public ManuscriptElementTreeItem(ManuscriptElement manuscriptElement, NovelEditViewModel viewModel, Action<ManuscriptElementTreeItem> selected) {
         ManuscriptElement = manuscriptElement;
-        _selected = selected;
+        ViewModel = viewModel;
+
+        foreach (var childManuscriptElement in manuscriptElement.ManuscriptElements) {
+            var newElement = new ManuscriptElementTreeItem(childManuscriptElement, viewModel, selected) {
+                Parent = this
+            };
+            ManuscriptElements.Add(newElement);
+        }
+
+        Selected += () => selected(this);
+
+        ManuscriptElements.CollectionChanged += (_, _) => {
+            OnPropertyChanged(nameof(CanDelete));
+        };
     }
+
+    public ManuscriptElementTreeItem? Parent { get; set; }
+
+    public override string Name => ManuscriptElement.Name;
 
     public ManuscriptElement ManuscriptElement { get; }
 
-    public string Name => ManuscriptElement.Name;
-
-    private bool _isSelected;
-    public bool IsSelected {
-        get => _isSelected;
-        set {
-            _isSelected = value;
-            _selected(this);
-        }
-    }
+    public ObservableCollection<ManuscriptElementTreeItem> ManuscriptElements { get; } = new ObservableCollection<ManuscriptElementTreeItem>();
 
     public string ImageUriSource {
         get {
             return ManuscriptElement.Type switch {
                 ManuscriptElementType.Section => "/images/section.png",
-                ManuscriptElementType.Paragraph => "/images/paragraph.png",
                 ManuscriptElementType.Scene => "/images/scene.png",
-                _ => string.Empty
+                _ => "/images/section.png"
             };
         }
     }
+
+    public bool CanAddSection => ManuscriptElement.Type == ManuscriptElementType.Section;
+    public bool CanAddScene => ManuscriptElement.Type == ManuscriptElementType.Section;
+    public bool CanDelete => ManuscriptElement.ManuscriptElements.Count == 0;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -102,33 +112,15 @@ public sealed class ManuscriptElementTreeItem : ITreeItem, INotifyPropertyChange
     }
 }
 
-public sealed class CharacterTreeItem : ITreeItem, INotifyPropertyChanged {
-    private readonly Func<CharacterTreeItem, Task> _selected;
-
-    public CharacterTreeItem(Character character, Func<CharacterTreeItem, Task> selected) {
+public sealed class CharacterTreeItem : NovelTreeItem, INotifyPropertyChanged {
+    public CharacterTreeItem(Character character, Action<CharacterTreeItem> selected) {
         Character = character;
-        _selected = selected;
+        Selected += () => selected(this);
     }
 
     public Character Character { get; }
 
-    public string Name => Character.Name;
-
-    private bool _isSelected;
-    public bool IsSelected {
-        get => _isSelected;
-        set {
-            if (_isSelected == value) {
-                return;
-            }
-
-            _isSelected = value;
-
-            if (_isSelected) {
-                _selected(this);
-            }
-        }
-    }
+    public override string Name => Character.Name;
 
     public string ImageUriSource => Character.ImageUriSource;
 
