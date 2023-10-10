@@ -3,21 +3,31 @@ using NovelDocs.Pages.NovelEdit;
 using NovelDocs.Services;
 using System;
 using System.IO;
+using NovelDocs.Pages.GoogleDoc;
 
 namespace NovelDocs.Pages.CharacterDetails; 
 
 internal sealed class CharacterDetailsController : Controller<CharacterDetailsView, CharacterDetailsViewModel> {
     private readonly IDataPersister _dataPersister;
+    private readonly IGoogleDocController _googleDocController;
     private CharacterTreeItem _treeItem = null!; //wil be set in the initialize
 
-    public CharacterDetailsController(IDataPersister dataPersister) {
+    public CharacterDetailsController(IDataPersister dataPersister, IGoogleDocController googleDocController) {
         _dataPersister = dataPersister;
+        _googleDocController = googleDocController;
+
         ViewModel.PropertyChanged += (_, _) => {
             dataPersister.Save();
             _treeItem.OnPropertyChanged(nameof(CharacterTreeItem.Name));
         };
 
         View.FileDropped += FileDropped;
+    }
+
+    private void AssignDocument(string googleDocId) {
+        _treeItem.Character.GoogleDocId = googleDocId;
+        _dataPersister.Save();
+        _googleDocController.BrowseToDoc(googleDocId);
     }
 
     private void FileDropped(string path) {
@@ -40,7 +50,11 @@ internal sealed class CharacterDetailsController : Controller<CharacterDetailsVi
     }
 
     public void Initialize(CharacterTreeItem treeItem) {
-        ViewModel.SetCharacter(treeItem.Character);
         _treeItem = treeItem;
+
+        ViewModel.SetCharacter(treeItem.Character);
+        
+        _googleDocController.BrowseToDoc(treeItem.Character.GoogleDocId);
+        _googleDocController.Show(AssignDocument);
     }
 }

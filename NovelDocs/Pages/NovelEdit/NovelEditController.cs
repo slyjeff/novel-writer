@@ -3,6 +3,7 @@ using NovelDocs.Entity;
 using NovelDocs.Extensions;
 using NovelDocs.PageControls;
 using NovelDocs.Pages.CharacterDetails;
+using NovelDocs.Pages.GoogleDoc;
 using NovelDocs.Pages.NovelDetails;
 using NovelDocs.Pages.SectionDetails;
 using NovelDocs.Services;
@@ -16,9 +17,11 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     private Novel _novel = null!; //will never be null because initialize will always be called
 
 
-    public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister) {
+    public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister, IGoogleDocController googleDocController) {
         _serviceProvider = serviceProvider;
         _dataPersister = dataPersister;
+
+        ViewModel.GoogleDocView = googleDocController.View;
     }
 
     public void Initialize(Action novelClosed, Novel novelToLoad) {

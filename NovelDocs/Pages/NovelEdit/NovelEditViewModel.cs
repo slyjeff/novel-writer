@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using NovelDocs.Entity;
 using NovelDocs.PageControls;
+using NovelDocs.Pages.GoogleDoc;
 
 namespace NovelDocs.Pages.NovelEdit; 
 
@@ -13,6 +14,8 @@ public abstract class NovelEditViewModel : ViewModel {
         Manuscript.ViewModel = this;
         Characters.ViewModel = this;
     }
+
+    public virtual GoogleDocView GoogleDocView { get; set; } = null!; //set in initializer of controller
 
     public virtual object EditDataView { get; set; } = null!; //set in initialize of controller
     public ManuscriptTreeItem Manuscript => (ManuscriptTreeItem)TreeItems[0];
