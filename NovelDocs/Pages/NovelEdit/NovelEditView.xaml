@@ -31,7 +31,7 @@
 
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="350"/>
+                <ColumnDefinition Width="550"/>
                 <ColumnDefinition Width="*" MinWidth="950"/>
                 <ColumnDefinition Width="450"/>
             </Grid.ColumnDefinitions>
@@ -78,7 +78,7 @@
 
                     <HierarchicalDataTemplate DataType="{x:Type novelEdit:ManuscriptElementTreeItem}" ItemsSource="{Binding ManuscriptElements}">
                         <StackPanel Orientation="Horizontal"
-                                    Margin="0, 0, 10, 0">
+                                    Margin="0, 2, 10, 2">
                             
                             <StackPanel.ContextMenu>
                                 <ContextMenu>
@@ -102,13 +102,14 @@
                                 </ContextMenu>
                             </StackPanel.ContextMenu>
 
-                            <Image Width="50" DockPanel.Dock="Top">
+                            <Image Width="30" DockPanel.Dock="Top">
                                 <Image.Source>
-                                    <BitmapImage DecodePixelWidth="50" UriSource="{Binding ImageUriSource}" />
+                                    <BitmapImage DecodePixelWidth="30" UriSource="{Binding ImageUriSource}" />
                                 </Image.Source>
                             </Image>
 
                             <TextBlock FontSize="20"
+                                       Margin="5, 0, 0, 0"
                                        Foreground="White"
                                        VerticalAlignment="Center"
                                        Text="{Binding Name}" />

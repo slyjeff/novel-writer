@@ -7,7 +7,8 @@
         mc:Ignorable="d"
         Title="NovelDocs"
         Height="1200" 
-        Width="1800"
+        Width="2000"
+        WindowState="Maximized"
         WindowStartupLocation="CenterScreen" d:DataContext="{d:DesignInstance main:MainViewModel }">
     <Grid>
         <ContentControl Content="{Binding Page}"></ContentControl>

@@ -29,7 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Images\Chapter.png" />
     <Resource Include="Images\Character.png" />
     <Resource Include="Images\Character2.png" />
     <Resource Include="Images\Manuscript.png" />
