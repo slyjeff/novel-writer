@@ -11,6 +11,8 @@
   <ItemGroup>
     <None Remove="Images\Add.png" />
     <None Remove="Images\Chapter.png" />
+    <None Remove="Images\Character.png" />
+    <None Remove="Images\Character2.png" />
     <None Remove="Images\Characters.png" />
     <None Remove="Images\Close.png" />
     <None Remove="Images\Delete.png" />
@@ -28,6 +30,8 @@
 
   <ItemGroup>
     <Resource Include="Images\Chapter.png" />
+    <Resource Include="Images\Character.png" />
+    <Resource Include="Images\Character2.png" />
     <Resource Include="Images\Manuscript.png" />
     <Resource Include="Images\Scene.png" />
     <Resource Include="Images\Section.png" />

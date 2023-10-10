@@ -14,4 +14,6 @@ public abstract class CharacterDetailsViewModel : ViewModel {
         get => _character.Name;
         set => _character.Name = value;
     }
+
+    public string ImageUriSource => _character.ImageUriSource;
 }

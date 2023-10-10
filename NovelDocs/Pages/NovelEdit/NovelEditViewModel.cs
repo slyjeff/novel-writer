@@ -119,11 +119,7 @@ public sealed class CharacterTreeItem : ITreeItem, INotifyPropertyChanged {
         }
     }
 
-    public string ImageUriSource {
-        get {
-            return string.Empty;
-        }
-    }
+    public string ImageUriSource => Character.ImageUriSource;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

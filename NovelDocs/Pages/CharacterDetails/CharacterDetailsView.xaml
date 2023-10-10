@@ -29,13 +29,21 @@
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0"
+        <Image Grid.Row="0" 
+               Grid.ColumnSpan="2"
+               Margin="5"
+               Width="300"
+               Source="{Binding Path=ImageUriSource}" AllowDrop="True"
+               Drop="UIElement_OnDrop"/>
+
+        <TextBlock Grid.Row="1"
                    Grid.Column="0"
                    Text="Name:"/>
 
-        <TextBox Grid.Row="0"
+        <TextBox Grid.Row="1"
                  Grid.Column="1"
                  HorizontalAlignment="Stretch"
                  Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>

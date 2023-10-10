@@ -107,9 +107,9 @@
                             </StackPanel.ContextMenu>
 
 
-                            <Image Width="30" DockPanel.Dock="Top">
+                            <Image Width="50">
                                 <Image.Source>
-                                    <BitmapImage DecodePixelWidth="30" UriSource="/images/Characters.png" />
+                                    <BitmapImage DecodePixelWidth="50" UriSource="/images/Characters.png" />
                                 </Image.Source>
                             </Image>
                             <TextBlock FontSize="20"
@@ -122,14 +122,11 @@
 
                     <DataTemplate DataType="{x:Type novelEdit:CharacterTreeItem}">
                         <StackPanel Orientation="Horizontal"
-                                    Margin="0, 0, 10, 0">
-                            <!--<Image Width="50" DockPanel.Dock="Top">
-                                <Image.Source>
-                                    <BitmapImage DecodePixelWidth="50" UriSource="{Binding ImageUriSource}" />
-                                </Image.Source>
-                            </Image>-->
+                                    Margin="0, 2, 10, 2">
+                            <Image Width="50" Source="{Binding ImageUriSource}" />
 
                             <TextBlock FontSize="20"
+                                       Margin="10, 0, 0, 0"
                                        Foreground="White"
                                        VerticalAlignment="Center"
                                        Text="{Binding Name}" />
