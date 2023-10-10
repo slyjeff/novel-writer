@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Docs.v1;
-using Google.Apis.Drive.v3;
+using Google.Apis.Docs.v1.Data;
 using Google.Apis.Services;
 using Google.Apis.Util;
 
@@ -12,10 +12,23 @@ namespace NovelDocs.Services;
 
 public interface IGoogleDocService {
     Task<bool> GoogleDocExists (string googleDocId);
+    Task<string> CreateDocument(string title);
 }
 
 
 internal sealed class GoogleDocService : IGoogleDocService {
+    public async Task<string> CreateDocument(string title) {
+        var credentials = await GetCredentials();
+
+        var docsService = new DocsService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
+        var document = new Document {
+            Title = title
+        };
+
+        var createdDocument = await docsService.Documents.Create(document).ExecuteAsync();
+        return createdDocument.DocumentId;
+    }
+
     public async Task<bool> GoogleDocExists(string googleDocId) {
         if (string.IsNullOrEmpty(googleDocId)) {
             return false;

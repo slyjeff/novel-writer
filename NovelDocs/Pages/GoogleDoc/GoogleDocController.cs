@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.ComponentModel;
 using System.Threading.Tasks;
 using CefSharp;
 using CefSharp.Wpf;
@@ -9,14 +9,14 @@ namespace NovelDocs.Pages.GoogleDoc;
 
 public interface IGoogleDocController {
     GoogleDocView View { get; }
-    Task Show(string googleDocId, Action<string> assignDocument);
+    Task Show(IGoogleDocViewModel googleDocViewModel);
     void Hide();
 }
 
 internal sealed class GoogleDocController : Controller<GoogleDocView, GoogleDocViewModel>, IGoogleDocController {
     private readonly IGoogleDocService _googleDocService;
     private readonly ChromiumWebBrowser _browser;
-    private Action<string> _assignDocument = null!; //will be assigned whenever the form is made visible
+    private IGoogleDocViewModel? _googleDocViewModel;
 
     public GoogleDocController(IGoogleDocService googleDocService) {
         _googleDocService = googleDocService;
@@ -31,23 +31,45 @@ internal sealed class GoogleDocController : Controller<GoogleDocView, GoogleDocV
         View.BrowserGrid.Children.Add(_browser);
     }
 
-    public async Task Show(string googleDocId, Action<string> assignDocument) {
-        _assignDocument = assignDocument;
-        await BrowseToDoc(googleDocId);
+    public async Task Show(IGoogleDocViewModel googleDocViewModel) {
+        if (_googleDocViewModel != null) {
+            _googleDocViewModel.PropertyChanged -= GoogleDocViewModelPropertyChanged;
+        }
+
+        _googleDocViewModel = googleDocViewModel;
+        _googleDocViewModel.PropertyChanged += GoogleDocViewModelPropertyChanged;
+        await BrowseToDoc();
         ViewModel.IsVisible = true;
+    }
+
+    private async void GoogleDocViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e) {
+        if (e.PropertyName == nameof(GoogleDocViewModel.GoogleDocId)) {
+            await BrowseToDoc();
+        }
     }
 
     public void Hide() {
         ViewModel.IsVisible = false;
+
+        if (_googleDocViewModel == null) {
+            return;
+        }
+
+        _googleDocViewModel.PropertyChanged -= GoogleDocViewModelPropertyChanged;
+        _googleDocViewModel = null;
     }
 
-    private async Task BrowseToDoc(string googleDocId) {
-        if (!await _googleDocService.GoogleDocExists(googleDocId)) {
+    private async Task BrowseToDoc() {
+        if (_googleDocViewModel == null) {
+            return;
+        }
+
+        if (!await _googleDocService.GoogleDocExists(_googleDocViewModel.GoogleDocId)) {
             ViewModel.DocumentExists = false;
             return;
         }
 
-        var address = $"https://docs.google.com/document/d/{googleDocId}/edit";
+        var address = $"https://docs.google.com/document/d/{_googleDocViewModel.GoogleDocId}/edit";
         if (_browser.Address == null || !_browser.Address.StartsWith(address)) {
             _browser.Address = address;
         }
@@ -56,7 +78,12 @@ internal sealed class GoogleDocController : Controller<GoogleDocView, GoogleDocV
     }
 
     [Command]
-    public void CreateDocument() {
+    public async Task CreateDocument() {
+        if (_googleDocViewModel == null) {
+            return;
+        }
+
+        _googleDocViewModel.GoogleDocId = await _googleDocService.CreateDocument(_googleDocViewModel.Name);
     }
 
     [Command]
@@ -70,9 +97,12 @@ internal sealed class GoogleDocController : Controller<GoogleDocView, GoogleDocV
     }
 
     [Command]
-    public async Task AssigningExistingDocumentConfirmed() {
-        _assignDocument(ViewModel.GoogleDocId);
-        await BrowseToDoc(ViewModel.GoogleDocId);
+    public void AssigningExistingDocumentConfirmed() {
+        if (_googleDocViewModel == null) {
+            return;
+        }
+
+        _googleDocViewModel.GoogleDocId = ViewModel.GoogleDocId;
         ViewModel.AssigningExistingDocument = false;
     }
 }

@@ -53,16 +53,13 @@ internal sealed class CharacterDetailsController : Controller<CharacterDetailsVi
     public async Task Initialize(CharacterTreeItem treeItem) {
         _treeItem = treeItem;
 
-        ViewModel.SetCharacter(treeItem.Character);
+        ViewModel.SetSourceData(treeItem.Character);
         
-        await _googleDocController.Show(treeItem.Character.GoogleDocId, AssignDocument);
+        await _googleDocController.Show(ViewModel);
     }
 
     [Command]
-    public async Task UnassignGoogleDocId() {
-        _treeItem.Character.GoogleDocId = string.Empty;
-        _dataPersister.Save();
-        await _googleDocController.Show(string.Empty, AssignDocument);
-        ViewModel.OnPropertyChanged(nameof(ViewModel.IsDocumentAssigned));
+    public void UnassignGoogleDocId() {
+        ViewModel.GoogleDocId = string.Empty;
     }
 }
