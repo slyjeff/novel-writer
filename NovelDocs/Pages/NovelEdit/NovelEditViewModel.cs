@@ -45,7 +45,10 @@ public abstract class NovelTreeItem : INovelTreeItem {
         get => _isSelected;
         set {
             _isSelected = value;
-            Selected?.Invoke();
+
+            if (_isSelected) {
+                Selected?.Invoke();
+            }
         }
     }
     public bool IsExpanded { get; set; }

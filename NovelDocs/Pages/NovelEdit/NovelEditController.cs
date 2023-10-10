@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using NovelDocs.Entity;
 using NovelDocs.Extensions;
 using NovelDocs.PageControls;
