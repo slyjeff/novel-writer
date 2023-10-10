@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Docs.v1;
 using Google.Apis.Docs.v1.Data;
+using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using Google.Apis.Util;
 
@@ -13,6 +14,7 @@ namespace NovelDocs.Services;
 public interface IGoogleDocService {
     Task<bool> GoogleDocExists (string googleDocId);
     Task<string> CreateDocument(string title);
+    Task RenameDoc(string googleDocId, string newName);
 }
 
 
@@ -27,6 +29,16 @@ internal sealed class GoogleDocService : IGoogleDocService {
 
         var createdDocument = await docsService.Documents.Create(document).ExecuteAsync();
         return createdDocument.DocumentId;
+    }
+
+    public async Task RenameDoc(string googleDocId, string newName) {
+        var credentials = await GetCredentials();
+        var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
+
+        var file = await driveService.Files.Get(googleDocId).ExecuteAsync();
+        file.Name = newName;
+        file.Id = null;
+        await driveService.Files.Update(file, googleDocId).ExecuteAsync();
     }
 
     public async Task<bool> GoogleDocExists(string googleDocId) {

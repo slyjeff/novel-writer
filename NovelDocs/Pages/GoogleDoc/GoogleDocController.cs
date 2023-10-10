@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using System.Timers;
 using CefSharp;
 using CefSharp.Wpf;
 using NovelDocs.PageControls;
@@ -40,10 +41,36 @@ internal sealed class GoogleDocController : Controller<GoogleDocView, GoogleDocV
         ViewModel.IsVisible = true;
     }
 
+    private readonly Timer _renameTimer = new(1000);
+
     private async void GoogleDocViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e) {
-        if (e.PropertyName == nameof(GoogleDocViewModel.GoogleDocId)) {
-            await BrowseToDoc();
+        switch (e.PropertyName) {
+            case nameof(IGoogleDocViewModel.GoogleDocId):
+                await BrowseToDoc();
+                break;
+            case nameof(IGoogleDocViewModel.Name): {
+                //for renames, wait a second to send all renames at once.
+                if (_renameTimer.Enabled) {
+                    _renameTimer.Stop();
+                } else {
+                    _renameTimer.Elapsed += RenameDoc;
+                }
+
+                _renameTimer.Start();
+                break;
+            }
         }
+    }
+
+    private async void RenameDoc(object? sender, ElapsedEventArgs e) {
+        if (_googleDocViewModel == null) {
+            return;
+        }
+
+        await _googleDocService.RenameDoc(_googleDocViewModel.GoogleDocId, _googleDocViewModel.Name);
+
+        _renameTimer.Elapsed -= RenameDoc;
+        _renameTimer.Stop();
     }
 
     public void Hide() {
