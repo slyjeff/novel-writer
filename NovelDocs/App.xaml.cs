@@ -23,7 +23,8 @@ public partial class App {
     private static void AddServices(IServiceCollection services) {
         services
             .AddSingleton<IDataPersister, DataPersister>()
-            .AddSingleton<IGoogleDocController, GoogleDocController>();
+            .AddSingleton<IGoogleDocController, GoogleDocController>()
+            .AddTransient<IGoogleDocService, GoogleDocService>();
     }
 
     private void App_OnStartup(object sender, StartupEventArgs e) {

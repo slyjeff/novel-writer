@@ -16,4 +16,6 @@ public abstract class CharacterDetailsViewModel : ViewModel {
     }
 
     public string ImageUriSource => _character.ImageUriSource;
+
+    public bool IsDocumentAssigned => !string.IsNullOrEmpty(_character.GoogleDocId);
 }

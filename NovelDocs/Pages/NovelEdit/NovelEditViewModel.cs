@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using NovelDocs.Entity;
 using NovelDocs.PageControls;
 using NovelDocs.Pages.GoogleDoc;
@@ -102,9 +103,9 @@ public sealed class ManuscriptElementTreeItem : ITreeItem, INotifyPropertyChange
 }
 
 public sealed class CharacterTreeItem : ITreeItem, INotifyPropertyChanged {
-    private readonly Action<CharacterTreeItem> _selected;
+    private readonly Func<CharacterTreeItem, Task> _selected;
 
-    public CharacterTreeItem(Character character, Action<CharacterTreeItem> selected) {
+    public CharacterTreeItem(Character character, Func<CharacterTreeItem, Task> selected) {
         Character = character;
         _selected = selected;
     }
@@ -117,8 +118,15 @@ public sealed class CharacterTreeItem : ITreeItem, INotifyPropertyChanged {
     public bool IsSelected {
         get => _isSelected;
         set {
+            if (_isSelected == value) {
+                return;
+            }
+
             _isSelected = value;
-            _selected(this);
+
+            if (_isSelected) {
+                _selected(this);
+            }
         }
     }
 

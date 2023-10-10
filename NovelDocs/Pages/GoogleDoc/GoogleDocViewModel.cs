@@ -9,7 +9,9 @@ public abstract class GoogleDocViewModel : ViewModel  {
     public virtual bool DocumentExists {
         get => _documentExists;
         set {
-            if (value == _documentExists) return;
+            if (value == _documentExists) {
+                return;
+            }
             _documentExists = value;
             OnPropertyChanged(nameof(CanCreateOrLinkDocument));
         }
@@ -19,7 +21,10 @@ public abstract class GoogleDocViewModel : ViewModel  {
     public virtual bool AssigningExistingDocument {
         get => _assigningExistingDocument;
         set {
-            if (value == _assigningExistingDocument) return;
+            GoogleDocId = string.Empty;
+            if (value == _assigningExistingDocument) {
+                return;
+            }
             _assigningExistingDocument = value;
             OnPropertyChanged(nameof(CanCreateOrLinkDocument));
         }

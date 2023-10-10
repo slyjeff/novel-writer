@@ -16,6 +16,10 @@ internal sealed class DataPersister : IDataPersister {
     private Data? _data;
 
     public void Save() {
+        if (_data == null) {
+            return;
+        }
+
         var currentNovel = _data.Novels.FirstOrDefault(x => x.Name == _data.LastOpenedNovel);
         if (currentNovel != null) {
             currentNovel.LastModified = DateTime.Now;

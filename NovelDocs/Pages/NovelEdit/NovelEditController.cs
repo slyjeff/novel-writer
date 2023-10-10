@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using NovelDocs.Entity;
 using NovelDocs.Extensions;
 using NovelDocs.PageControls;
@@ -67,9 +68,9 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         ViewModel.EditDataView = null!;
     }
 
-    private void CharacterSelected(CharacterTreeItem treeItem) {
+    private async Task CharacterSelected(CharacterTreeItem treeItem) {
         var characterDetailsController = _serviceProvider.CreateInstance<CharacterDetailsController>();
-        characterDetailsController.Initialize(treeItem);
+        await characterDetailsController.Initialize(treeItem);
         ViewModel.EditDataView = characterDetailsController.View;
     }
 

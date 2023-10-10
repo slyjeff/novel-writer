@@ -3,6 +3,7 @@ using NovelDocs.Pages.NovelEdit;
 using NovelDocs.Services;
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using NovelDocs.Pages.GoogleDoc;
 
 namespace NovelDocs.Pages.CharacterDetails; 
@@ -27,7 +28,7 @@ internal sealed class CharacterDetailsController : Controller<CharacterDetailsVi
     private void AssignDocument(string googleDocId) {
         _treeItem.Character.GoogleDocId = googleDocId;
         _dataPersister.Save();
-        _googleDocController.BrowseToDoc(googleDocId);
+        ViewModel.OnPropertyChanged(nameof(ViewModel.IsDocumentAssigned));
     }
 
     private void FileDropped(string path) {
@@ -49,12 +50,19 @@ internal sealed class CharacterDetailsController : Controller<CharacterDetailsVi
         ViewModel.OnPropertyChanged(nameof(ViewModel.ImageUriSource));
     }
 
-    public void Initialize(CharacterTreeItem treeItem) {
+    public async Task Initialize(CharacterTreeItem treeItem) {
         _treeItem = treeItem;
 
         ViewModel.SetCharacter(treeItem.Character);
         
-        _googleDocController.BrowseToDoc(treeItem.Character.GoogleDocId);
-        _googleDocController.Show(AssignDocument);
+        await _googleDocController.Show(treeItem.Character.GoogleDocId, AssignDocument);
+    }
+
+    [Command]
+    public async Task UnassignGoogleDocId() {
+        _treeItem.Character.GoogleDocId = string.Empty;
+        _dataPersister.Save();
+        await _googleDocController.Show(string.Empty, AssignDocument);
+        ViewModel.OnPropertyChanged(nameof(ViewModel.IsDocumentAssigned));
     }
 }
