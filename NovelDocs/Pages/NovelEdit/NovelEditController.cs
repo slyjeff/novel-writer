@@ -5,6 +5,7 @@ using NovelDocs.PageControls;
 using NovelDocs.Pages.CharacterDetails;
 using NovelDocs.Pages.GoogleDoc;
 using NovelDocs.Pages.NovelDetails;
+using NovelDocs.Pages.SceneDetails;
 using NovelDocs.Pages.SectionDetails;
 using NovelDocs.Services;
 
@@ -39,7 +40,7 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
                 continue;
             }
 
-            var treeItem = new ManuscriptElementTreeItem(element, ViewModel, SectionSelected);
+            var treeItem = new ManuscriptElementTreeItem(element, ViewModel, ManuscriptElementSelected);
             ViewModel.Manuscript.ManuscriptElements.Add(treeItem);
         }
 
@@ -57,10 +58,17 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         ViewModel.EditDataView = novelDetailsController.View;
     }
 
-    private void SectionSelected(ManuscriptElementTreeItem treeItem) {
-        var novelDetailsController = _serviceProvider.CreateInstance<SectionDetailsController>();
-        novelDetailsController.Initialize(treeItem);
-        ViewModel.EditDataView = novelDetailsController.View;
+    private async void ManuscriptElementSelected(ManuscriptElementTreeItem treeItem) {
+        if (treeItem.ManuscriptElement.Type == ManuscriptElementType.Section) {
+            var novelDetailsController = _serviceProvider.CreateInstance<SectionDetailsController>();
+            novelDetailsController.Initialize(treeItem);
+            ViewModel.EditDataView = novelDetailsController.View;
+            return;
+        }
+
+        var sceneDetailsController = _serviceProvider.CreateInstance<SceneDetailsController>();
+        await sceneDetailsController.Initialize(treeItem);
+        ViewModel.EditDataView = sceneDetailsController.View;
     }
 
     private void CharactersSelected() {
@@ -74,7 +82,7 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     }
 
     private void AddManuscriptElement(ManuscriptElementTreeItem? parent, ManuscriptElement newManuscriptElement) {
-        var newTreeItem = new ManuscriptElementTreeItem(newManuscriptElement, ViewModel, SectionSelected) {
+        var newTreeItem = new ManuscriptElementTreeItem(newManuscriptElement, ViewModel, ManuscriptElementSelected) {
             Parent = parent
         };
         if (parent == null) {

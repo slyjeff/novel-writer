@@ -25,12 +25,6 @@ internal sealed class CharacterDetailsController : Controller<CharacterDetailsVi
         View.FileDropped += FileDropped;
     }
 
-    private void AssignDocument(string googleDocId) {
-        _treeItem.Character.GoogleDocId = googleDocId;
-        _dataPersister.Save();
-        ViewModel.OnPropertyChanged(nameof(ViewModel.IsDocumentAssigned));
-    }
-
     private void FileDropped(string path) {
         var directory = AppDomain.CurrentDomain.BaseDirectory;
         var characterImagesDirectory = Path.Combine(directory, "characterImages");

@@ -4,7 +4,7 @@ namespace NovelDocs.Entity;
 
 public enum ManuscriptElementType { Section, Scene }
 
-public sealed class ManuscriptElement {
+public sealed class ManuscriptElement : IGoogleDocItem {
     public string Name { get; set; } = string.Empty;
     
     public ManuscriptElementType Type { get; set; }

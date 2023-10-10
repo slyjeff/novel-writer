@@ -34,7 +34,7 @@ public interface INovelTreeItem {
     public bool IsExpanded { get; set; }
 }
 
-public abstract class NovelTreeItem : INovelTreeItem {
+public abstract class NovelTreeItem : INovelTreeItem, INotifyPropertyChanged {
     public event Action? Selected;
 
     public abstract string Name {get;
@@ -53,7 +53,13 @@ public abstract class NovelTreeItem : INovelTreeItem {
     }
     public bool IsExpanded { get; set; }
 
-    public NovelEditViewModel ViewModel { get; set; } = null!; //set in constructor;
+    public NovelEditViewModel ViewModel { get; set; } = null!; //set when created
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public void OnPropertyChanged([CallerMemberName] string? propertyName = null) {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 }
 
 public sealed class ManuscriptTreeItem : NovelTreeItem {
@@ -67,7 +73,7 @@ public sealed class CharactersTreeItem : NovelTreeItem {
     public IList<CharacterTreeItem> Characters { get; } = new ObservableCollection<CharacterTreeItem>();
 }
 
-public sealed class ManuscriptElementTreeItem : NovelTreeItem, INotifyPropertyChanged {
+public sealed class ManuscriptElementTreeItem : NovelTreeItem {
     public ManuscriptElementTreeItem(ManuscriptElement manuscriptElement, NovelEditViewModel viewModel, Action<ManuscriptElementTreeItem> selected) {
         ManuscriptElement = manuscriptElement;
         ViewModel = viewModel;
@@ -92,7 +98,7 @@ public sealed class ManuscriptElementTreeItem : NovelTreeItem, INotifyPropertyCh
 
     public ManuscriptElement ManuscriptElement { get; }
 
-    public ObservableCollection<ManuscriptElementTreeItem> ManuscriptElements { get; } = new ObservableCollection<ManuscriptElementTreeItem>();
+    public ObservableCollection<ManuscriptElementTreeItem> ManuscriptElements { get; } = new();
 
     public string ImageUriSource {
         get {
@@ -107,12 +113,6 @@ public sealed class ManuscriptElementTreeItem : NovelTreeItem, INotifyPropertyCh
     public bool CanAddSection => ManuscriptElement.Type == ManuscriptElementType.Section;
     public bool CanAddScene => ManuscriptElement.Type == ManuscriptElementType.Section;
     public bool CanDelete => ManuscriptElement.ManuscriptElements.Count == 0;
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    public void OnPropertyChanged([CallerMemberName] string? propertyName = null) {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
 }
 
 public sealed class CharacterTreeItem : NovelTreeItem, INotifyPropertyChanged {
@@ -126,10 +126,4 @@ public sealed class CharacterTreeItem : NovelTreeItem, INotifyPropertyChanged {
     public override string Name => Character.Name;
 
     public string ImageUriSource => Character.ImageUriSource;
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    public void OnPropertyChanged([CallerMemberName] string? propertyName = null) {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
 }
