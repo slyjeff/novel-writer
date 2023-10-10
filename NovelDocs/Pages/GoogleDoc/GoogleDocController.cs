@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using CefSharp;
 using CefSharp.Wpf;
@@ -15,8 +16,9 @@ public interface IGoogleDocController {
 
 internal sealed class GoogleDocController : Controller<GoogleDocView, GoogleDocViewModel>, IGoogleDocController {
     private readonly IGoogleDocService _googleDocService;
-    private readonly ChromiumWebBrowser _browser;
     private IGoogleDocViewModel? _googleDocViewModel;
+
+    private readonly IDictionary<string, ChromiumWebBrowser> _browsers = new Dictionary<string, ChromiumWebBrowser>();
 
     public GoogleDocController(IGoogleDocService googleDocService) {
         _googleDocService = googleDocService;
@@ -25,10 +27,6 @@ internal sealed class GoogleDocController : Controller<GoogleDocView, GoogleDocV
             CachePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)
         };
         Cef.Initialize(settings);
-
-        _browser = new ChromiumWebBrowser();
-
-        View.BrowserGrid.Children.Add(_browser);
     }
 
     public async Task Show(IGoogleDocViewModel googleDocViewModel) {
@@ -69,12 +67,21 @@ internal sealed class GoogleDocController : Controller<GoogleDocView, GoogleDocV
             return;
         }
 
-        var address = $"https://docs.google.com/document/d/{_googleDocViewModel.GoogleDocId}/edit";
-        if (_browser.Address == null || !_browser.Address.StartsWith(address)) {
-            _browser.Address = address;
-        }
+        var browser = GetBrowser(_googleDocViewModel.GoogleDocId);
+        View.BrowserGrid.Children.Clear();
+        View.BrowserGrid.Children.Add(browser);
 
         ViewModel.DocumentExists = true;
+    }
+
+    private ChromiumWebBrowser GetBrowser(string googleDocId) {
+        if (_browsers.TryGetValue(googleDocId, out var browser)) {
+            return browser;
+        }
+
+        var address = $"https://docs.google.com/document/d/{googleDocId}/edit";
+        _browsers[googleDocId] = new ChromiumWebBrowser(address);
+        return _browsers[googleDocId];
     }
 
     [Command]
