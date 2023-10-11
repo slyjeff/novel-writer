@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace NovelDocs.Entity; 
 
@@ -12,4 +13,6 @@ public sealed class ManuscriptElement : IGoogleDocItem {
     public string GoogleDocId { get; set; } = string.Empty;
 
     public IList<ManuscriptElement> ManuscriptElements = new List<ManuscriptElement>();
+
+    public Guid? PointOfViewCharacterId { get; set; }
 }

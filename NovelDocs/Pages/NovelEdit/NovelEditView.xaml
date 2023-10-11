@@ -63,7 +63,7 @@
                                 </ContextMenu>
                             </StackPanel.ContextMenu>
 
-                            <Image Width="50" DockPanel.Dock="Top">
+                            <Image Width="50">
                                 <Image.Source>
                                     <BitmapImage DecodePixelWidth="50" UriSource="/images/Manuscript.png" />
                                 </Image.Source>

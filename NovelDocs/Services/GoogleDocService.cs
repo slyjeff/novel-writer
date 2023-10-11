@@ -42,6 +42,10 @@ internal sealed class GoogleDocService : IGoogleDocService {
     }
 
     public async Task RenameDoc(string googleDocId, string newName) {
+        if (! await GoogleDocExists(googleDocId)) {
+            return;
+        }
+
         var credentials = await GetCredentials();
         var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
 

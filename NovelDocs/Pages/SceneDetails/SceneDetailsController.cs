@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using NovelDocs.PageControls;
 using NovelDocs.Pages.GoogleDoc;
@@ -15,17 +14,31 @@ internal sealed class SceneDetailsController : Controller<SceneDetailsView, Scen
     public SceneDetailsController(IDataPersister dataPersister, IGoogleDocController googleDocController) {
         _googleDocController = googleDocController;
 
-        ViewModel.PropertyChanged += (_, _) => {
+        ViewModel.PropertyChanged += (_, e) => {
             dataPersister.Save();
-            _treeItem.OnPropertyChanged(nameof(CharacterTreeItem.Name));
+
+            if (e.PropertyName == nameof(ViewModel.Name)) {
+                _treeItem.OnPropertyChanged(nameof(ManuscriptElementTreeItem.Name));
+            }
         };
+
+        var novel = dataPersister.GetLastOpenedNovel();
+        if (novel == null) {
+            return;
+        }
+
+        foreach (var character in novel.Characters) {
+            ViewModel.AvailableCharacters.Add(character);
+        }
     }
 
     public async Task Initialize(ManuscriptElementTreeItem treeItem) {
         _treeItem = treeItem;
 
         ViewModel.SetSourceData(treeItem.ManuscriptElement);
-        
+
+        ViewModel.PointOfViewCharacter = ViewModel.AvailableCharacters.FirstOrDefault(x => x.Id == treeItem.ManuscriptElement.PointOfViewCharacterId) ?? ViewModel.AvailableCharacters.First();
+
         await _googleDocController.Show(ViewModel);
     }
 

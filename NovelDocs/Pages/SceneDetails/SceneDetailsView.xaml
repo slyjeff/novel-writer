@@ -30,8 +30,11 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+       
         <TextBlock Grid.Row="0"
                    Grid.Column="0"
                    Text="Name:"/>
@@ -40,9 +43,42 @@
                  Grid.Column="1"
                  HorizontalAlignment="Stretch"
                  Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-        
+
+        <TextBlock Grid.Row="1"
+                   Grid.Column="0"
+                   Text="Point of View:"/>
+
+        <ComboBox Grid.Row="1"
+                  Grid.Column="1"
+                  Margin="10"
+                  HorizontalAlignment="Left"
+                  BorderThickness="1"
+                  BorderBrush="White"
+                  Padding="1"
+                  Width="200"
+                  ItemsSource="{Binding AvailableCharacters}"
+                  SelectedItem="{Binding PointOfViewCharacter, Mode=TwoWay}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Margin="5, 0, 30, 0"
+                               Text="{Binding Name}" 
+                               FontSize="16" 
+                               Foreground="Black" 
+                               VerticalAlignment="Center" />
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <Image Grid.Row="2"
+               Grid.Column="1"
+               Margin="10, 5, 0, 0"
+               HorizontalAlignment="Left"
+               Width="300"
+               Visibility="{Binding IsPointOfViewCharacterSelected, Converter={StaticResource IsVisible}}"
+               Source="{Binding Path=PointOfViewCharacter.ImageUriSource}" AllowDrop="True"/>
+
         <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
-        <Button Grid.Row="1"
+        <Button Grid.Row="3"
                 Grid.Column="0"
                 Grid.ColumnSpan="2"
                 HorizontalAlignment="Left"

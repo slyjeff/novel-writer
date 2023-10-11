@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using NovelDocs.Entity;
 using NovelDocs.PageControls;
@@ -93,7 +94,6 @@ public sealed class ManuscriptElementTreeItem : NovelTreeItem {
     }
 
     public ManuscriptElementTreeItem? Parent { get; set; }
-
     public override string Name => ManuscriptElement.Name;
 
     public ManuscriptElement ManuscriptElement { get; }

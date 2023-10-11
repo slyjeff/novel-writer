@@ -3,6 +3,8 @@
 namespace NovelDocs.Entity; 
 
 public sealed class Character : IGoogleDocItem {
+    public Guid Id { get; set; } = Guid.NewGuid(); 
+
     public string Name { get; set; } = "New Character";
 
     public string GoogleDocId { get; set; } = string.Empty;
