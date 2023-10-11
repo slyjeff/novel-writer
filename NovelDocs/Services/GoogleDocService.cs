@@ -1,11 +1,11 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Docs.v1;
-using Google.Apis.Docs.v1.Data;
 using Google.Apis.Drive.v3;
+using Google.Apis.Drive.v3.Data;
 using Google.Apis.Services;
 using Google.Apis.Util;
 
@@ -13,22 +13,32 @@ namespace NovelDocs.Services;
 
 public interface IGoogleDocService {
     Task<bool> GoogleDocExists (string googleDocId);
-    Task<string> CreateDocument(string title);
+    Task<string> CreateDocument(IGoogleDocViewModel googleDocViewModel);
     Task RenameDoc(string googleDocId, string newName);
 }
 
 
 internal sealed class GoogleDocService : IGoogleDocService {
-    public async Task<string> CreateDocument(string title) {
-        var credentials = await GetCredentials();
+    private readonly IDataPersister _dataPersister;
 
-        var docsService = new DocsService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
-        var document = new Document {
-            Title = title
+    public GoogleDocService(IDataPersister dataPersister) {
+        _dataPersister = dataPersister;
+    }
+
+    public async Task<string> CreateDocument(IGoogleDocViewModel googleDocViewModel) {
+
+        var credentials = await GetCredentials();
+        var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
+        var directory = await GetSubDirectory(googleDocViewModel.GoogleDocType);
+
+        var doc = new File {
+            Name = googleDocViewModel.Name,
+            MimeType = "application/vnd.google-apps.document",
+            Parents = new List<string> { directory }
         };
 
-        var createdDocument = await docsService.Documents.Create(document).ExecuteAsync();
-        return createdDocument.DocumentId;
+        var newDoc = await driveService.Files.Create(doc).ExecuteAsync();
+        return newDoc.Id;
     }
 
     public async Task RenameDoc(string googleDocId, string newName) {
@@ -56,6 +66,40 @@ internal sealed class GoogleDocService : IGoogleDocService {
         }
     }
 
+
+    private async Task<string> GetSubDirectory(GoogleDocType googleDocType) {
+        var novel = _dataPersister.GetLastOpenedNovel();
+        if (novel == null) {
+            return string.Empty;
+        }
+
+        var directoryId = (googleDocType == GoogleDocType.Character)
+            ? novel.CharactersFolder
+            : novel.ScenesFolder;
+
+        if (!string.IsNullOrEmpty(directoryId)) {
+            return directoryId;
+        }
+
+        var directory = new File {
+            Name = googleDocType.ToString(),
+            MimeType = "application/vnd.google-apps.folder",
+            Parents = new List<string> {novel.GoogleDriveFolder}
+        };
+
+        var credentials = await GetCredentials();
+        var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
+        var newDirectory = await driveService.Files.Create(directory).ExecuteAsync();
+
+        if (googleDocType == GoogleDocType.Character) {
+            novel.CharactersFolder = newDirectory.Id;
+        } else {
+            novel.ScenesFolder = newDirectory.Id;
+        }
+
+        return newDirectory.Id;
+    }
+
     private static async Task<UserCredential> GetCredentials() {
         var clientSecrets = new ClientSecrets {
             ClientId = "905518365711-3injjl7unepaof6alnan5cueh8j57hs3.apps.googleusercontent.com",
@@ -78,10 +122,10 @@ internal sealed class GoogleDocService : IGoogleDocService {
     }
 
     private static string GetClientSecret() {
-        if (!File.Exists("ClientSecret.txt")) {
+        if (!System.IO.File.Exists("ClientSecret.txt")) {
             throw new Exception("'ClientSecret.txt' file not found.");
         }
 
-        return File.ReadAllText("ClientSecret.txt");
+        return System.IO.File.ReadAllText("ClientSecret.txt");
     }
 }

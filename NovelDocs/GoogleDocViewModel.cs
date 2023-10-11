@@ -2,14 +2,18 @@
 using NovelDocs.Entity;
 using NovelDocs.PageControls;
 
-namespace NovelDocs; 
+namespace NovelDocs;
+
+public enum GoogleDocType { Scene, Character }
 
 public interface IGoogleDocViewModel : INotifyPropertyChanged {
     string Name { get; set; }
     string GoogleDocId { get; set; }
+
+    GoogleDocType GoogleDocType { get; }
 }
 
-public class GoogleDocViewModel<T> : ViewModel, IGoogleDocViewModel where T : class, IGoogleDocItem, new() {
+public abstract class GoogleDocViewModel<T> : ViewModel, IGoogleDocViewModel where T : class, IGoogleDocItem, new() {
     public virtual void SetSourceData(T sourceData) {
         SourceData = sourceData;
     }
@@ -29,6 +33,7 @@ public class GoogleDocViewModel<T> : ViewModel, IGoogleDocViewModel where T : cl
         }
     }
 
+    public abstract GoogleDocType GoogleDocType { get; }
 
     public bool IsDocumentAssigned => !string.IsNullOrEmpty(SourceData.GoogleDocId);
 }

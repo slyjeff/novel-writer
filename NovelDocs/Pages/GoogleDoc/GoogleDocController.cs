@@ -117,7 +117,7 @@ internal sealed class GoogleDocController : Controller<GoogleDocView, GoogleDocV
             return;
         }
 
-        _googleDocViewModel.GoogleDocId = await _googleDocService.CreateDocument(_googleDocViewModel.Name);
+        _googleDocViewModel.GoogleDocId = await _googleDocService.CreateDocument(_googleDocViewModel);
     }
 
     [Command]

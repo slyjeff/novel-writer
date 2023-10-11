@@ -15,9 +15,8 @@ internal sealed class MainController : Controller<MainView, MainViewModel> {
 
     public MainController(IDataPersister dataPersister, IServiceProvider serviceProvider) {
         _serviceProvider = serviceProvider;
-        var data = dataPersister.Data;
 
-        var novelToOpen = data.Novels.FirstOrDefault(x => x.Name == data.LastOpenedNovel);
+        var novelToOpen = dataPersister.GetLastOpenedNovel();
         if (novelToOpen == null) {
             ShowNovelSelector();
         } else {
