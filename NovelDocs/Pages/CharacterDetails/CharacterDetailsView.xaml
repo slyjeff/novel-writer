@@ -30,7 +30,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <Image Grid.Row="0" 
@@ -53,9 +53,10 @@
         <Button Grid.Row="2"
                 Grid.Column="0"
                 Grid.ColumnSpan="2"
+                VerticalAlignment="Bottom"
                 HorizontalAlignment="Left"
                 Height="40"
-                Margin="10, 10, 0, 0"
+                Margin="10"
                 Visibility="{Binding IsDocumentAssigned, Converter={StaticResource IsVisible}}"
                 Command="{Binding UnassignGoogleDocId}">
             <StackPanel Orientation="Horizontal">
