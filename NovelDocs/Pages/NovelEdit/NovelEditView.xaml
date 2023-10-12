@@ -130,13 +130,13 @@
                             </StackPanel.ContextMenu>
 
 
-                            <Image Width="50">
+                            <Image Width="40">
                                 <Image.Source>
-                                    <BitmapImage DecodePixelWidth="50" UriSource="/images/Characters.png" />
+                                    <BitmapImage DecodePixelWidth="40" UriSource="/images/Characters.png" />
                                 </Image.Source>
                             </Image>
                             <TextBlock FontSize="20"
-                                       Margin="20, 0, 0, 0"
+                                       Margin="5, 0, 0, 0"
                                        Foreground="White"
                                        VerticalAlignment="Center"
                                        Text="Characters" />

@@ -46,13 +46,9 @@ internal static class ListExtensions {
         return false;
     }
 
-    public static void MoveManuscriptElementTreeItemToList(this IList<ManuscriptElementTreeItem> manuscriptElements, ManuscriptElementTreeItem itemToMove) {
-        if (itemToMove.Parent == null) {
-            return;
-        }
-
-        itemToMove.Parent.ManuscriptElements.Remove(itemToMove);
-        manuscriptElements.Add(itemToMove);
+    public static void MoveManuscriptElementTreeItemToList(this IList<ManuscriptElementTreeItem> manuscriptElements, ManuscriptElementTreeItem itemToMove, IList<ManuscriptElementTreeItem> destinationList) {
+        manuscriptElements.RemoveManuscriptElementTreeItem(itemToMove);
+        destinationList.Add(itemToMove);
     }
 
     private static bool RemoveManuscriptElementTreeItem(this ICollection<ManuscriptElementTreeItem> manuscriptElements, ManuscriptElementTreeItem itemToRemove) {

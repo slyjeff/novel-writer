@@ -1,8 +1,9 @@
-﻿using NovelDocs.Entity;
-using NovelDocs.PageControls;
+﻿using NovelDocs.PageControls;
 using NovelDocs.Pages.GoogleDoc;
+using NovelDocs.Pages.NovelDetails;
 using NovelDocs.Pages.NovelEdit;
 using NovelDocs.Services;
+using System.Windows.Input;
 
 namespace NovelDocs.Pages.SectionDetails {
     internal sealed class SectionDetailsController : Controller<SectionDetailsView, SectionDetailsViewModel> {

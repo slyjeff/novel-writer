@@ -8,14 +8,14 @@ using NovelDocs.Entity;
 
 namespace NovelDocs.Pages.NovelEdit;
 
-public enum MoveDestination { Into, Before }
+public enum MoveType { Into, Before }
 
 public partial class NovelEditView {
     public NovelEditView() {
         InitializeComponent();
     }
 
-    public event Action<NovelTreeItem, MoveDestination, NovelTreeItem>? OnMoveNovelTreeItem;
+    public event Action<NovelTreeItem, MoveType, NovelTreeItem>? OnMoveNovelTreeItem;
 
     private Point _dragStartPoint;
     private TreeViewItem? _itemToMove;
@@ -29,7 +29,7 @@ public partial class NovelEditView {
             return;
         }
 
-        OnMoveNovelTreeItem?.Invoke(_manuscriptElementToMove, MoveDestination.Into, _manuscriptElementDestination);
+        OnMoveNovelTreeItem?.Invoke(_manuscriptElementToMove, MoveType.Into, _manuscriptElementDestination);
     }
 
     private void MoveAfter_Click(object sender, RoutedEventArgs e) {
@@ -37,7 +37,7 @@ public partial class NovelEditView {
             return;
         }
 
-        OnMoveNovelTreeItem?.Invoke(_manuscriptElementToMove, MoveDestination.Before, _manuscriptElementDestination);
+        OnMoveNovelTreeItem?.Invoke(_manuscriptElementToMove, MoveType.Before, _manuscriptElementDestination);
     }
 
     private void TreeView_PreviewMouseLeftButtonDown(object sender, MouseEventArgs e) {
@@ -139,7 +139,7 @@ public partial class NovelEditView {
                 case ManuscriptTreeItem when itemToMove is not ManuscriptElementTreeItem:
                     return;
                 case ManuscriptTreeItem:
-                    OnMoveNovelTreeItem?.Invoke(itemToMove, MoveDestination.Into, destinationItem);
+                    OnMoveNovelTreeItem?.Invoke(itemToMove, MoveType.Into, destinationItem);
                     return;
                 case ManuscriptElementTreeItem when itemToMove is not ManuscriptElementTreeItem:
                     return;
@@ -150,16 +150,16 @@ public partial class NovelEditView {
                     return;
                 case ManuscriptElementTreeItem { ManuscriptElement.Type: ManuscriptElementType.Section }:
                     if (((ManuscriptElementTreeItem)itemToMove).Parent == destinationItem) {
-                        OnMoveNovelTreeItem?.Invoke(itemToMove, MoveDestination.Before, destinationItem);
+                        OnMoveNovelTreeItem?.Invoke(itemToMove, MoveType.Before, destinationItem);
                         return;
                     }
-                    OnMoveNovelTreeItem?.Invoke(itemToMove, MoveDestination.Into, destinationItem);
+                    OnMoveNovelTreeItem?.Invoke(itemToMove, MoveType.Into, destinationItem);
                     return;
                 case ManuscriptElementTreeItem:
-                    OnMoveNovelTreeItem?.Invoke(itemToMove, MoveDestination.Before, destinationItem);
+                    OnMoveNovelTreeItem?.Invoke(itemToMove, MoveType.Before, destinationItem);
                     return;
                 case CharacterTreeItem:
-                    OnMoveNovelTreeItem?.Invoke(itemToMove, MoveDestination.Before, destinationItem);
+                    OnMoveNovelTreeItem?.Invoke(itemToMove, MoveType.Before, destinationItem);
                     return;
             }
         } finally {

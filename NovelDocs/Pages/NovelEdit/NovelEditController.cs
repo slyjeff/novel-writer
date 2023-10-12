@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Input;
 using NovelDocs.Entity;
 using NovelDocs.Extensions;
 using NovelDocs.PageControls;
@@ -53,70 +54,97 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         }
     }
 
-    private void MoveNovelTreeItem(NovelTreeItem itemToMove, MoveDestination moveDestination, NovelTreeItem destinationItem) {
-        if (itemToMove is CharacterTreeItem characterToMove) {
-            if (destinationItem is CharacterTreeItem characterDestination) {
-                _novel.Characters.Move(characterToMove.Character, characterDestination.Character);
-                ViewModel.Characters.Characters.Move(characterToMove, characterDestination);
-
-                _dataPersister.Save();
-                
-                characterToMove.IsSelected = true;
-            }
-        }
-
-        if (itemToMove is ManuscriptElementTreeItem manuscriptElementToMoveTreeItem) {
-            if (destinationItem is ManuscriptTreeItem) {
-                _novel.ManuscriptElements.MoveManuscriptElementToList(manuscriptElementToMoveTreeItem.ManuscriptElement, _novel.ManuscriptElements);
-                if (manuscriptElementToMoveTreeItem.Parent != null) {
-                    manuscriptElementToMoveTreeItem.Parent.ManuscriptElements.Remove(manuscriptElementToMoveTreeItem);
-                    ViewModel.Manuscript.ManuscriptElements.Add(manuscriptElementToMoveTreeItem);
-                    manuscriptElementToMoveTreeItem.Parent = null;
-                }
-
-                _dataPersister.Save();
-
-                manuscriptElementToMoveTreeItem.IsSelected = true;
-                if (manuscriptElementToMoveTreeItem.Parent != null) {
-                    manuscriptElementToMoveTreeItem.Parent.IsExpanded = true;
-                }
-            }
-
-            if (destinationItem is ManuscriptElementTreeItem destinationManuscriptElementTreeItem) {
-                if (moveDestination == MoveDestination.Into) {
-                    _novel.ManuscriptElements.MoveManuscriptElementToList(manuscriptElementToMoveTreeItem.ManuscriptElement, destinationManuscriptElementTreeItem.ManuscriptElement.ManuscriptElements);
-
-                    if (manuscriptElementToMoveTreeItem.Parent != null) {
-                        manuscriptElementToMoveTreeItem.Parent.ManuscriptElements.Remove(manuscriptElementToMoveTreeItem);
-                    } else {
-                        ViewModel.Manuscript.ManuscriptElements.Remove(manuscriptElementToMoveTreeItem);
-                    }
-
-                    destinationManuscriptElementTreeItem.ManuscriptElements.Add(manuscriptElementToMoveTreeItem);
-                    manuscriptElementToMoveTreeItem.Parent = destinationManuscriptElementTreeItem;
-                } else {
-                    var destinationParentList = _novel.ManuscriptElements.FindParentManuscriptElementList(destinationManuscriptElementTreeItem.ManuscriptElement);
-                    if (destinationParentList == null) {
-                        return;
-                    }
-                    _novel.ManuscriptElements.MoveManuscriptElementToList(manuscriptElementToMoveTreeItem.ManuscriptElement, destinationParentList);
-                    destinationParentList.Move(manuscriptElementToMoveTreeItem.ManuscriptElement, destinationManuscriptElementTreeItem.ManuscriptElement);
-
-                    var treeItemDestinationParentList = destinationManuscriptElementTreeItem.Parent?.ManuscriptElements ?? ViewModel.Manuscript.ManuscriptElements;
-                    treeItemDestinationParentList.MoveManuscriptElementTreeItemToList(manuscriptElementToMoveTreeItem);
-                    treeItemDestinationParentList.Move(manuscriptElementToMoveTreeItem, destinationManuscriptElementTreeItem);
-                    manuscriptElementToMoveTreeItem.Parent = destinationManuscriptElementTreeItem.Parent;
-                }
-
-                _dataPersister.Save();
-
-                manuscriptElementToMoveTreeItem.IsSelected = true;
-                if (manuscriptElementToMoveTreeItem.Parent != null) {
-                    manuscriptElementToMoveTreeItem.Parent.IsExpanded = true;
-                }
-            }
+    private void MoveNovelTreeItem(NovelTreeItem itemToMove, MoveType moveType, NovelTreeItem destinationItem) {
+        switch (itemToMove) {
+            case CharacterTreeItem characterToMove:
+                MoveCharacter(characterToMove, destinationItem as CharacterTreeItem);
+                break;
+            case ManuscriptElementTreeItem manuscriptItemToMove:
+                MoveManuscriptElement(manuscriptItemToMove, moveType, destinationItem as ManuscriptElementTreeItem);
+                break;
         }
     }
+
+    private void MoveCharacter(CharacterTreeItem treeItemToMove, CharacterTreeItem? destinationTreeItem) {
+        if (destinationTreeItem == null) {
+            return;
+        }
+
+        _novel.Characters.Move(treeItemToMove.Character, destinationTreeItem.Character);
+        ViewModel.Characters.Characters.Move(treeItemToMove, destinationTreeItem);
+
+        _dataPersister.Save();
+
+        treeItemToMove.IsSelected = true;
+    }
+
+    private void MoveManuscriptElement(ManuscriptElementTreeItem treeItemToMove, MoveType moveDestination, ManuscriptElementTreeItem? destinationTreeItem) {
+        if (destinationTreeItem == null) {
+            MoveManuscriptElementToRoot(treeItemToMove);
+        } else if (moveDestination == MoveType.Into) {
+            MoveManuscriptElementIntoSection(treeItemToMove, destinationTreeItem);
+        } else {
+            MoveManuscriptElementBeforeAnotherManuscriptElement(treeItemToMove, destinationTreeItem);
+        }
+    }
+
+    private void MoveManuscriptElementBeforeAnotherManuscriptElement(ManuscriptElementTreeItem treeItemToMove, ManuscriptElementTreeItem destinationTreeItem) {
+        var destinationParentList = _novel.ManuscriptElements.FindParentManuscriptElementList(destinationTreeItem.ManuscriptElement);
+        if (destinationParentList == null) {
+            return;
+        }
+
+        //first move the item to the new list, then move it to before the existing item
+        _novel.ManuscriptElements.MoveManuscriptElementToList(treeItemToMove.ManuscriptElement, destinationParentList);
+        destinationParentList.Move(treeItemToMove.ManuscriptElement, destinationTreeItem.ManuscriptElement);
+
+        var treeItemDestinationParentList = destinationTreeItem.Parent?.ManuscriptElements ?? ViewModel.Manuscript.ManuscriptElements;
+        ViewModel.Manuscript.ManuscriptElements.MoveManuscriptElementTreeItemToList(treeItemToMove, treeItemDestinationParentList);
+        treeItemDestinationParentList.Move(treeItemToMove, destinationTreeItem);
+
+        treeItemToMove.Parent = destinationTreeItem.Parent;
+
+        _dataPersister.Save();
+
+        treeItemToMove.IsSelected = true;
+        if (treeItemToMove.Parent != null) {
+            treeItemToMove.Parent.IsExpanded = true;
+        }
+    }
+
+
+    private void MoveManuscriptElementToRoot(ManuscriptElementTreeItem treeItemToMove) {
+        //this item can't be at the root already
+        if (treeItemToMove.Parent == null) {
+            return;
+        }
+
+        _novel.ManuscriptElements.MoveManuscriptElementToList(treeItemToMove.ManuscriptElement, _novel.ManuscriptElements);
+
+        treeItemToMove.Parent.ManuscriptElements.Remove(treeItemToMove);
+        ViewModel.Manuscript.ManuscriptElements.Add(treeItemToMove);
+        treeItemToMove.Parent = null;
+
+        _dataPersister.Save();
+
+        treeItemToMove.IsSelected = true;
+    }
+
+    private void MoveManuscriptElementIntoSection(ManuscriptElementTreeItem treeItemToMove, ManuscriptElementTreeItem destinationTreeItem) {
+        _novel.ManuscriptElements.MoveManuscriptElementToList(treeItemToMove.ManuscriptElement, destinationTreeItem.ManuscriptElement.ManuscriptElements);
+
+        var treeItemParentList = treeItemToMove.Parent?.ManuscriptElements ?? ViewModel.Manuscript.ManuscriptElements;
+        treeItemParentList.Remove(treeItemToMove);
+
+        destinationTreeItem.ManuscriptElements.Add(treeItemToMove);
+        treeItemToMove.Parent = destinationTreeItem;
+
+        _dataPersister.Save();
+
+        treeItemToMove.IsSelected = true;
+        destinationTreeItem.IsExpanded = true;
+    }
+
 
 
     private void ManuscriptSelected() {

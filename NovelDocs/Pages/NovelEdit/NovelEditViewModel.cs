@@ -48,6 +48,8 @@ public abstract class NovelTreeItem : INovelTreeItem, INotifyPropertyChanged {
 
             OnPropertyChanged();
 
+            IsExpanded = true;
+
             if (_isSelected) {
                 Selected?.Invoke();
             }
