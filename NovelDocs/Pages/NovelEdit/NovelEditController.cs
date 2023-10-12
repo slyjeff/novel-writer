@@ -17,12 +17,13 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     private Action _novelClosed = null!; //will never be null because initialize will always be called
     private Novel _novel = null!; //will never be null because initialize will always be called
 
-
     public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister, IGoogleDocController googleDocController) {
         _serviceProvider = serviceProvider;
         _dataPersister = dataPersister;
 
         ViewModel.GoogleDocView = googleDocController.View;
+
+        View.OnMoveNovelTreeItem += MoveNovelTreeItem;
     }
 
     public void Initialize(Action novelClosed, Novel novelToLoad) {
@@ -51,6 +52,72 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
             ViewModel.Characters.Characters.Add(treeItem);
         }
     }
+
+    private void MoveNovelTreeItem(NovelTreeItem itemToMove, MoveDestination moveDestination, NovelTreeItem destinationItem) {
+        if (itemToMove is CharacterTreeItem characterToMove) {
+            if (destinationItem is CharacterTreeItem characterDestination) {
+                _novel.Characters.Move(characterToMove.Character, characterDestination.Character);
+                ViewModel.Characters.Characters.Move(characterToMove, characterDestination);
+
+                _dataPersister.Save();
+                
+                characterToMove.IsSelected = true;
+            }
+        }
+
+        if (itemToMove is ManuscriptElementTreeItem manuscriptElementToMoveTreeItem) {
+            if (destinationItem is ManuscriptTreeItem) {
+                _novel.ManuscriptElements.MoveManuscriptElementToList(manuscriptElementToMoveTreeItem.ManuscriptElement, _novel.ManuscriptElements);
+                if (manuscriptElementToMoveTreeItem.Parent != null) {
+                    manuscriptElementToMoveTreeItem.Parent.ManuscriptElements.Remove(manuscriptElementToMoveTreeItem);
+                    ViewModel.Manuscript.ManuscriptElements.Add(manuscriptElementToMoveTreeItem);
+                    manuscriptElementToMoveTreeItem.Parent = null;
+                }
+
+                _dataPersister.Save();
+
+                manuscriptElementToMoveTreeItem.IsSelected = true;
+                if (manuscriptElementToMoveTreeItem.Parent != null) {
+                    manuscriptElementToMoveTreeItem.Parent.IsExpanded = true;
+                }
+            }
+
+            if (destinationItem is ManuscriptElementTreeItem destinationManuscriptElementTreeItem) {
+                if (moveDestination == MoveDestination.Into) {
+                    _novel.ManuscriptElements.MoveManuscriptElementToList(manuscriptElementToMoveTreeItem.ManuscriptElement, destinationManuscriptElementTreeItem.ManuscriptElement.ManuscriptElements);
+
+                    if (manuscriptElementToMoveTreeItem.Parent != null) {
+                        manuscriptElementToMoveTreeItem.Parent.ManuscriptElements.Remove(manuscriptElementToMoveTreeItem);
+                    } else {
+                        ViewModel.Manuscript.ManuscriptElements.Remove(manuscriptElementToMoveTreeItem);
+                    }
+
+                    destinationManuscriptElementTreeItem.ManuscriptElements.Add(manuscriptElementToMoveTreeItem);
+                    manuscriptElementToMoveTreeItem.Parent = destinationManuscriptElementTreeItem;
+                } else {
+                    var destinationParentList = _novel.ManuscriptElements.FindParentManuscriptElementList(destinationManuscriptElementTreeItem.ManuscriptElement);
+                    if (destinationParentList == null) {
+                        return;
+                    }
+                    _novel.ManuscriptElements.MoveManuscriptElementToList(manuscriptElementToMoveTreeItem.ManuscriptElement, destinationParentList);
+                    destinationParentList.Move(manuscriptElementToMoveTreeItem.ManuscriptElement, destinationManuscriptElementTreeItem.ManuscriptElement);
+
+                    var treeItemDestinationParentList = destinationManuscriptElementTreeItem.Parent?.ManuscriptElements ?? ViewModel.Manuscript.ManuscriptElements;
+                    treeItemDestinationParentList.MoveManuscriptElementTreeItemToList(manuscriptElementToMoveTreeItem);
+                    treeItemDestinationParentList.Move(manuscriptElementToMoveTreeItem, destinationManuscriptElementTreeItem);
+                    manuscriptElementToMoveTreeItem.Parent = destinationManuscriptElementTreeItem.Parent;
+                }
+
+                _dataPersister.Save();
+
+                manuscriptElementToMoveTreeItem.IsSelected = true;
+                if (manuscriptElementToMoveTreeItem.Parent != null) {
+                    manuscriptElementToMoveTreeItem.Parent.IsExpanded = true;
+                }
+            }
+        }
+    }
+
 
     private void ManuscriptSelected() {
         var novelDetailsController = _serviceProvider.CreateInstance<NovelDetailsController>();

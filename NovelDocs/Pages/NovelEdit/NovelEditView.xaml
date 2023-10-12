@@ -35,20 +35,20 @@
                 <ColumnDefinition Width="*" MinWidth="950"/>
                 <ColumnDefinition Width="450"/>
             </Grid.ColumnDefinitions>
-            
-            <TreeView Grid.Column="0" Background="#373737" ItemsSource="{Binding TreeItems}">
-                <TreeView.Resources>
-                    <Style TargetType="{x:Type TreeViewItem}" d:DataContext="{d:DesignInstance novelEdit:INovelTreeItem}">
-                        <Setter Property="IsExpanded" Value="{Binding IsExpanded}"/>
-                        <Setter Property="IsSelected" Value="{Binding IsSelected}"></Setter>
-                    </Style>
 
+            <TreeView Grid.Column="0" 
+                      x:Name="TreeView"
+                      Background="#373737"
+                      ItemsSource="{Binding TreeItems}">
+                <TreeView.Resources>
                     <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
                                      Color="Gray" />
                     <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
                                      Color="Gray" />
 
-                    <HierarchicalDataTemplate DataType="{x:Type novelEdit:ManuscriptTreeItem}" ItemsSource="{Binding ManuscriptElements}">
+                    <HierarchicalDataTemplate DataType="{x:Type novelEdit:ManuscriptTreeItem}" 
+                                              ItemsSource="{Binding ManuscriptElements}">
+
                         <StackPanel Orientation="Horizontal"
                                     Margin="0, 0, 10, 0">
                             <StackPanel.ContextMenu>
@@ -102,7 +102,7 @@
                                 </ContextMenu>
                             </StackPanel.ContextMenu>
 
-                            <Image Width="30" DockPanel.Dock="Top">
+                            <Image Width="30">
                                 <Image.Source>
                                     <BitmapImage DecodePixelWidth="30" UriSource="{Binding ImageUriSource}" />
                                 </Image.Source>
@@ -124,7 +124,8 @@
                             <StackPanel.ContextMenu>
                                 <ContextMenu>
                                     <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
-                                    <MenuItem Header="Add Character" Command="{Binding DataContext.ViewModel.AddCharacter, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"/>
+                                    <MenuItem Header="Add Character"
+                                              Command="{Binding DataContext.ViewModel.AddCharacter, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"/>
                                 </ContextMenu>
                             </StackPanel.ContextMenu>
 
@@ -155,6 +156,26 @@
                         </StackPanel>
                     </DataTemplate>
                 </TreeView.Resources>
+
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}" d:DataContext="{d:DesignInstance novelEdit:INovelTreeItem}">
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                        <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                        <Setter Property="AllowDrop" Value="True" />
+                        <EventSetter Event="DragOver" Handler="TreeView_DragOver"/>
+                        <EventSetter Event="DragEnter" Handler="TreeView_DragOver"/>
+                        <EventSetter Event="Drop" Handler="TreeView_Drop"></EventSetter>
+                        <EventSetter Event="PreviewMouseMove" Handler="TreeView_PreviewMouseMove"/>
+                        <EventSetter Event="PreviewMouseLeftButtonDown" Handler="TreeView_PreviewMouseLeftButtonDown" />
+                    </Style>
+                </TreeView.ItemContainerStyle>
+
+                <TreeView.ContextMenu>
+                    <ContextMenu x:Name="DragAndDropMenu">
+                        <MenuItem Header="Move Before" Click="MoveAfter_Click" />
+                        <MenuItem Header="Move Inside" Click="MoveInside_Click" />
+                    </ContextMenu>
+                </TreeView.ContextMenu>
             </TreeView>
 
             <GridSplitter Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" ResizeBehavior="CurrentAndNext"/>

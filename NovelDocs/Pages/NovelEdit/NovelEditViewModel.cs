@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using NovelDocs.Entity;
 using NovelDocs.PageControls;
@@ -47,12 +46,25 @@ public abstract class NovelTreeItem : INovelTreeItem, INotifyPropertyChanged {
         set {
             _isSelected = value;
 
+            OnPropertyChanged();
+
             if (_isSelected) {
                 Selected?.Invoke();
             }
         }
     }
-    public bool IsExpanded { get; set; }
+
+    private bool _isExpanded;
+    public bool IsExpanded {
+        get => _isExpanded;
+        set {
+            if (value == _isExpanded) {
+                return;
+            }
+            _isExpanded = value;
+            OnPropertyChanged();
+        }
+    }
 
     public NovelEditViewModel ViewModel { get; set; } = null!; //set when created
 
