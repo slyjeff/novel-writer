@@ -33,6 +33,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="550"/>
                 <ColumnDefinition Width="*" MinWidth="950"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="450"/>
             </Grid.ColumnDefinitions>
 
@@ -183,9 +184,8 @@
             <ContentControl Grid.Column="1" 
                             Content="{Binding GoogleDocView}" />
 
-            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" ResizeBehavior="CurrentAndNext"/>
-            
-            <ScrollViewer Grid.Column="2"
+            <Separator Grid.Column="2" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+            <ScrollViewer Grid.Column="3"
                           HorizontalScrollBarVisibility="Auto"
                           VerticalScrollBarVisibility="Auto"
                           Content="{Binding EditDataView}"/>

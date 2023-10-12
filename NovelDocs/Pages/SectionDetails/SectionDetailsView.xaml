@@ -29,6 +29,7 @@
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
@@ -37,7 +38,24 @@
 
         <TextBox Grid.Row="0"
                  Grid.Column="1"
-                 HorizontalAlignment="Stretch"
+                 Width="350"
                  Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <TextBlock Grid.Row="1"
+                   Grid.Column="0"
+                   VerticalAlignment="Top"
+                   Text="Summary:"/>
+
+        <TextBox Grid.Row="1"
+                 Grid.Column="1"
+                 Width="350" 
+                 TextWrapping="Wrap"
+                 AcceptsReturn="True"
+                 VerticalScrollBarVisibility="Auto"
+                 HorizontalAlignment="Left"
+                 Height="200"
+                 Text="{Binding Summary, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        
+
     </Grid>
 </UserControl>
