@@ -129,7 +129,7 @@ public sealed class ManuscriptElementTreeItem : NovelTreeItem {
     public bool CanDelete => ManuscriptElement.ManuscriptElements.Count == 0;
 }
 
-public sealed class CharacterTreeItem : NovelTreeItem, INotifyPropertyChanged {
+public sealed class CharacterTreeItem : NovelTreeItem {
     public CharacterTreeItem(Character character, Action<CharacterTreeItem> selected) {
         Character = character;
         Selected += () => selected(this);

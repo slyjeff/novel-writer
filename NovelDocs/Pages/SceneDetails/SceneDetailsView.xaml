@@ -49,11 +49,81 @@
             </ComboBox>
 
             <!-- ReSharper disable once Xaml.PossibleNullReferenceException -->
-            <Image Margin="10, 5, 0, 0"
+            <Image Margin="10, 5, 0, 5"
                    HorizontalAlignment="Left"
                    Width="330"
                    Visibility="{Binding IsPointOfViewCharacterSelected, Converter={StaticResource IsVisible}}"
                    Source="{Binding Path=PointOfViewCharacter.ImageUriSource}" AllowDrop="True"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Vertical">
+            <DockPanel LastChildFill="False">
+                <TextBlock DockPanel.Dock="Left"
+                           Text="Characters In Scene:"/>
+
+                <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                <Button DockPanel.Dock="Right"
+                        HorizontalAlignment="Left"
+                        Margin="0, 0, 10, 0"
+                        Height="30"
+                        Command="{Binding AddCharacterToScene}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Add"
+                                   FontSize="16"
+                                   VerticalAlignment="Center" />
+                        <Image Margin="10, 0, 10, 0"
+                               Width="20"
+                               Source="/Images/Add.png"
+                               VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </DockPanel>
+            <ItemsControl Margin="10, 5, 10, 0"
+                ItemsSource="{Binding CharactersInScene}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Width="330" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Width="165">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="26" />
+                                <RowDefinition Height="165" />
+                            </Grid.RowDefinitions>
+
+                            <ComboBox Grid.Row="0"
+                                      HorizontalAlignment="Left"
+                                      BorderThickness="1"
+                                      BorderBrush="White"
+                                      Width="165"
+                                      Height="26"
+                                      Foreground="Black"
+                                      ItemsSource="{Binding AvailableCharacters}"
+                                      SelectedItem="{Binding SelectedCharacter, Mode=TwoWay}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" 
+                                                   FontSize="16" 
+                                                   Foreground="Black" 
+                                                   VerticalAlignment="Center" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <Image Grid.Row="1"
+                                   VerticalAlignment="Top"
+                                   HorizontalAlignment="Center"
+                                   Height="165"
+                                   Visibility="{Binding IsCharacterSelected, Converter={StaticResource IsVisible}}"
+                                   Source="{Binding Path=SelectedCharacter.ImageUriSource}" AllowDrop="True"/>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
         </StackPanel>
 
 

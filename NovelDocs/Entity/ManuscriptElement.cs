@@ -17,4 +17,5 @@ public sealed class ManuscriptElement : IGoogleDocItem {
     public Guid? PointOfViewCharacterId { get; set; }
     public string Summary { get; set; } = string.Empty;
     public IList<PlotPoint> PlotPoints { get; set; } = new List<PlotPoint>();
+    public IList<Guid> CharactersInScene { get; set; } = new List<Guid>();
 }
