@@ -38,6 +38,7 @@
                                 Background="{TemplateBinding Background}" 
                                 SnapsToDevicePixels="True" 
                                 Uid="Border_38">
+                            <!-- ReSharper disable once Xaml.RedundantAttachedProperty -->
                             <ContentPresenter x:Name="ContentPresenter"  
                                               Content="{TemplateBinding Header}" 
                                               Grid.Column="1" 
@@ -90,5 +91,21 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="EditPanelTextBlock" TargetType="{x:Type TextBlock}">
+            <Setter Property="Margin" Value="10, 5, 0, 5" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style x:Key="EditPanelTextBox" TargetType="{x:Type TextBox}">
+            <Setter Property="Width" Value="330" />
+            <Setter Property="Margin" Value="10, 0, 10, 5" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Background" Value="#373737" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
     </Application.Resources>
 </Application>

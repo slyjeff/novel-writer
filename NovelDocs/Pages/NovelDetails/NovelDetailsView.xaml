@@ -7,26 +7,10 @@
              mc:Ignorable="d"
              Background="#373737" d:DataContext="{d:DesignInstance novelDetails:NovelDetailsViewModel}">
     <UserControl.Resources>
-        <Style TargetType="{x:Type TextBlock}">
-            <Setter Property="Margin" Value="10, 5, 0, 5" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="FontSize" Value="16" />
-            <Setter Property="Foreground" Value="White" />
-        </Style>
-        <Style TargetType="{x:Type TextBox}">
-            <Setter Property="Margin" Value="10, 5, 10, 5" />
-            <Setter Property="FontSize" Value="16" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Background" Value="#373737" />
-            <Setter Property="Foreground" Value="White" />
-        </Style>
+        <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource EditPanelTextBlock}" />
+        <Style TargetType="{x:Type TextBox}"  BasedOn="{StaticResource EditPanelTextBox}" />
     </UserControl.Resources>
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -34,52 +18,33 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0"
-                   Grid.Column="0"
-                   Text="Name:"/>
+        <StackPanel Grid.Row="0"
+                    Orientation="Vertical">
+            <TextBlock Text="Name:"/>
+            <TextBox HorizontalAlignment="Stretch"
+                     Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
 
-        <TextBox Grid.Row="0"
-                 Grid.Column="1"
-                 HorizontalAlignment="Stretch"
-                 Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-
-        <TextBlock Grid.Row="1"
-                   Grid.Column="0"
-                   Text="Author:"/>
-
-        <TextBox Grid.Row="1"
-                 Grid.Column="1"
-                 HorizontalAlignment="Stretch"
+        <StackPanel Grid.Row="1"
+                    Orientation="Vertical">
+            <TextBlock Text="Author:"/>
+            <TextBox HorizontalAlignment="Stretch"
                  Text="{Binding Author, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
 
-        <TextBlock Grid.Row="1"
-                   Grid.Column="0"
-                   Text="Author:"/>
+        <StackPanel Grid.Row="2"
+                    Orientation="Vertical">
+            <TextBlock Text="Copyright:"/>
+            <TextBox HorizontalAlignment="Stretch"
+                     Text="{Binding CopyrightYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
 
-        <TextBox Grid.Row="1"
-                 Grid.Column="1"
-                 HorizontalAlignment="Stretch"
-                 Text="{Binding Author, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-
-        <TextBlock Grid.Row="2"
-                   Grid.Column="0"
-                   Text="Copyright:"/>
-
-        <TextBox Grid.Row="2"
-                 Grid.Column="1"
-                 HorizontalAlignment="Stretch"
-                 Text="{Binding CopyrightYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-
-        <TextBlock Grid.Row="3"
-                   Grid.Column="0"
-                   Width="100"
-                   HorizontalAlignment="Left"
-                   TextWrapping="Wrap"
-                   Text="Google Drive Folder:"/>
-
-        <TextBox Grid.Row="3"
-                 Grid.Column="1"
-                 HorizontalAlignment="Stretch"
-                 Text="{Binding GoogleDriveFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <StackPanel Grid.Row="3"
+                    Orientation="Vertical">
+            <TextBlock HorizontalAlignment="Left"
+                       Text="Google Drive Folder:"/>
+            <TextBox HorizontalAlignment="Stretch"
+                     Text="{Binding GoogleDriveFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
     </Grid>
 </UserControl>

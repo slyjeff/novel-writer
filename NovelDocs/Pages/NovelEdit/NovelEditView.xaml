@@ -34,7 +34,7 @@
                 <ColumnDefinition Width="550"/>
                 <ColumnDefinition Width="*" MinWidth="950"/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="450"/>
+                <ColumnDefinition Width="350"/>
             </Grid.ColumnDefinitions>
 
             <TreeView Grid.Column="0" 
