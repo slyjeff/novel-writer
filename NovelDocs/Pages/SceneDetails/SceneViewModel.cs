@@ -33,8 +33,9 @@ public abstract class SceneDetailsViewModel : GoogleDocViewModel<ManuscriptEleme
 public sealed class CharacterInSceneViewModel : INotifyPropertyChanged {
     private readonly Character _removeCharacter = new() { Name = "(Remove)" };
 
-    public CharacterInSceneViewModel(IList<Character> availableCharacters) {
-        AvailableCharacters = availableCharacters;
+    public CharacterInSceneViewModel(IEnumerable<Character> availableCharacters) {
+        AvailableCharacters = availableCharacters.ToList();
+        AvailableCharacters.Insert(0, _removeCharacter);
     }
 
     public event Action<CharacterInSceneViewModel>? CharacterRemoved;
@@ -56,7 +57,7 @@ public sealed class CharacterInSceneViewModel : INotifyPropertyChanged {
 
     public bool IsCharacterSelected => SelectedCharacter != null && SelectedCharacter != _removeCharacter;
 
-    public IList<Character> AvailableCharacters { get; private set; } = new List<Character>();
+    public IList<Character> AvailableCharacters { get; private set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

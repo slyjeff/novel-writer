@@ -17,6 +17,17 @@
                Background="Gray">
 
             <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+            <Button DockPanel.Dock="Left" 
+                    ToolTip="Compile"
+                    Margin="5"
+                    Command="{Binding CompileNovel}">
+                <Image Margin="5"
+                       Width="25" 
+                       Source="/images/Documents.png" />
+            </Button>
+
+
+<!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
             <Button DockPanel.Dock="Right" 
                     ToolTip="Close Novel"
                     Margin="10,5,10,5"

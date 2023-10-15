@@ -11,6 +11,7 @@ public sealed class Novel {
     public string ScenesFolder { get; set; } = string.Empty;
     public string CharactersFolder { get; set; } = string.Empty;
     public DateTime LastModified { get; set; } = DateTime.Now;
+    public string ManuscriptId { get; set; } = string.Empty;
 
     public IList<ManuscriptElement> ManuscriptElements = new List<ManuscriptElement>();
 

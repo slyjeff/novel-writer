@@ -1,5 +1,7 @@
 ﻿using System;
-using System.Windows.Input;
+using System.Threading.Tasks;
+using System.Windows;
+using Microsoft.Win32;
 using NovelDocs.Entity;
 using NovelDocs.Extensions;
 using NovelDocs.PageControls;
@@ -15,12 +17,14 @@ namespace NovelDocs.Pages.NovelEdit;
 internal sealed class NovelEditController : Controller<NovelEditView, NovelEditViewModel> {
     private readonly IServiceProvider _serviceProvider;
     private readonly IDataPersister _dataPersister;
+    private readonly IGoogleDocService _googleDocService;
     private Action _novelClosed = null!; //will never be null because initialize will always be called
     private Novel _novel = null!; //will never be null because initialize will always be called
 
-    public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister, IGoogleDocController googleDocController) {
+    public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister, IGoogleDocController googleDocController, IGoogleDocService googleDocService) {
         _serviceProvider = serviceProvider;
         _dataPersister = dataPersister;
+        _googleDocService = googleDocService;
 
         ViewModel.GoogleDocView = googleDocController.View;
 
@@ -38,10 +42,6 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         ViewModel.Characters.Selected += CharactersSelected;
 
         foreach (var element in _novel.ManuscriptElements) {
-            if (element.Type != ManuscriptElementType.Section) {
-                continue;
-            }
-
             var treeItem = new ManuscriptElementTreeItem(element, ViewModel, ManuscriptElementSelected);
             ViewModel.Manuscript.ManuscriptElements.Add(treeItem);
         }
@@ -145,8 +145,6 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         destinationTreeItem.IsExpanded = true;
     }
 
-
-
     private void ManuscriptSelected() {
         var novelDetailsController = _serviceProvider.CreateInstance<NovelDetailsController>();
         novelDetailsController.Initialize(_novel);
@@ -191,6 +189,52 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         _dataPersister.Save();
 
         newTreeItem.IsSelected = true;
+    }
+
+    internal string GetSystemDefaultBrowser() {
+        var regKey = Registry.ClassesRoot.OpenSubKey("HTTP\\shell\\open\\command", false);
+        if (regKey == null) {
+            return string.Empty;
+        }
+
+        try {
+            //get rid of the enclosing quotes
+            var nameObject = regKey.GetValue(null);
+            if (nameObject == null) {
+                return string.Empty;
+            }
+
+            var name = nameObject.ToString()?.ToLower().Replace("" + (char)34, "");
+            if (name == null) {
+                return string.Empty;
+            }
+
+            //check to see if the value ends with .exe (this way we can remove any command line arguments)
+            if (!name.EndsWith("exe")) {
+                //get rid of all command line arguments (anything after the .exe must go)
+                name = name[..(name.LastIndexOf(".exe", StringComparison.Ordinal) + 4)];
+            }
+
+            return name;
+        }
+        catch (Exception ex) {
+            MessageBox.Show($"ERROR: An exception of type: {ex.GetType()} occurred in method: {ex.TargetSite} in the following module: {this.GetType()}");
+            return string.Empty;
+        } finally {
+            regKey.Close();
+        }
+    }
+
+    [Command]
+    public async Task CompileNovel() {
+        if (MessageBox.Show($"Compile Novel {_novel.Name}?", "Confirmation", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
+            return;
+        }
+
+        await _googleDocService.Compile();
+
+        var address = $"https://docs.google.com/document/d/{_novel.ManuscriptId}";
+        System.Diagnostics.Process.Start(GetSystemDefaultBrowser(), address);
     }
 
     [Command]
