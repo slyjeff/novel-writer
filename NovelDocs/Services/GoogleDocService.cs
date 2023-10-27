@@ -105,7 +105,6 @@ internal sealed class GoogleDocService : IGoogleDocService {
         var fullManuscript = await docsService.Documents.Get(manuscriptId).ExecuteAsync();
 
         var currentPosition = 1;
-        var docs = await GetDocIdsFromManuscriptElements(novel.ManuscriptElements);
         foreach (var docId in await GetDocIdsFromManuscriptElements(novel.ManuscriptElements)) {
             if (currentPosition != 1) {
                 //check if we need to add a page break or line break
