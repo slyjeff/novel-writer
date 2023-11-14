@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using NovelDocs.Entity;
 using NovelDocs.Extensions;
 using NovelDocs.PageControls;
@@ -14,13 +13,10 @@ internal sealed class MainController : Controller<MainView, MainViewModel> {
 
     public MainController(IDataPersister dataPersister, IServiceProvider serviceProvider) {
         _serviceProvider = serviceProvider;
-        var data = dataPersister.Data;
 
-        var novelToOpen = data.Novels.FirstOrDefault(x => x.Name == data.LastOpenedNovel);
+        var novelToOpen = dataPersister.GetLastOpenedNovel();
         if (novelToOpen == null) {
-            var novelSelectController = serviceProvider.CreateInstance<NovelSelectController>();
-            novelSelectController.Initialize(OpenNovel);
-            ViewModel.Page = novelSelectController.View;
+            ShowNovelSelector();
         } else {
             OpenNovel(novelToOpen);
         }
@@ -28,7 +24,13 @@ internal sealed class MainController : Controller<MainView, MainViewModel> {
 
     private void OpenNovel(Novel novel) {
         var novelEditController = _serviceProvider.CreateInstance<NovelEditController>();
-        novelEditController.Initialize(novel);
+        novelEditController.Initialize(ShowNovelSelector, novel);
         ViewModel.Page = novelEditController.View;
+    }
+
+    private void ShowNovelSelector() {
+        var novelSelectController = _serviceProvider.CreateInstance<NovelSelectController>();
+        novelSelectController.Initialize(OpenNovel);
+        ViewModel.Page = novelSelectController.View;
     }
 }

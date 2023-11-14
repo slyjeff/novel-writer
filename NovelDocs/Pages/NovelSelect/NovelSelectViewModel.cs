@@ -12,11 +12,11 @@ namespace NovelDocs.Pages.NovelSelect {
             Novel = novel;
             if (novel == null) {
                 Action = "New Novel";
-                UriSource = "/images/EmptyDocument.png";
+                ImageUriSource = "/images/EmptyDocument.png";
                 LastModified = string.Empty;
             } else {
                 Action = novel.Name;
-                UriSource = "/images/Document.png";
+                ImageUriSource = "/images/Document.png";
                 LastModified = novel.LastModified.ToString("MM/dd/yyyy hh:mm tt");
             }
         }
@@ -24,7 +24,7 @@ namespace NovelDocs.Pages.NovelSelect {
         public Novel? Novel { get; }
 
         public string Action { get; }
-        public string UriSource { get; }
+        public string ImageUriSource { get; }
         public string LastModified { get; }
     }
 }

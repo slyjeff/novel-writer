@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Windows.Markup;
 using Newtonsoft.Json;
 using NovelDocs.Entity;
 
@@ -9,11 +12,26 @@ public interface IDataPersister {
     public Data Data { get; }
 }
 
+public static class DataPersisterExtensions {
+    public static Novel? GetLastOpenedNovel(this IDataPersister dataPersister) {
+        return dataPersister.Data.Novels.FirstOrDefault(x => x.Name == dataPersister.Data.LastOpenedNovel);
+    }
+}
+
 internal sealed class DataPersister : IDataPersister {
     private const string FileName = "data.nd";
     private Data? _data;
 
     public void Save() {
+        if (_data == null) {
+            return;
+        }
+
+        var currentNovel = _data.Novels.FirstOrDefault(x => x.Name == _data.LastOpenedNovel);
+        if (currentNovel != null) {
+            currentNovel.LastModified = DateTime.Now;
+        }
+
         var json = JsonConvert.SerializeObject(_data);
         File.WriteAllText(FileName, json);
     }
