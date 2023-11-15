@@ -114,32 +114,64 @@ internal sealed class GoogleDocService : IGoogleDocService {
 
         var requests = new List<Request>();
         var currentPosition = 1;
+        var addBreakBeforeNextSection = false;
         foreach (var docId in idsToCompile) {
             if (string.IsNullOrEmpty(docId)) {
                 continue;
             }
 
             var isNewChapter = docId.StartsWith("Chapter:");
-            if (currentPosition != 1) {
-                //check if we need to add a page break or line break
-                if (isNewChapter) {
+            if (isNewChapter) {
+                if (currentPosition != 1) {
                     requests.Add(new Request {
                         InsertPageBreak = new InsertPageBreakRequest {
                             EndOfSegmentLocation = new EndOfSegmentLocation()
                         }
                     });
                     currentPosition += 2;
-                } else {
-                    requests.Add(new Request {
-                        InsertText = new InsertTextRequest {
-                            Text = "\n",
-                            Location = new Location {
-                                Index = currentPosition
-                            }
-                        }
-                    });
-                    currentPosition++;
                 }
+            } else if (addBreakBeforeNextSection) {
+                requests.Add(new Request {
+                    InsertText = new InsertTextRequest {
+                        Text = "\n",
+                        Location = new Location {
+                            Index = currentPosition
+                        }
+                    }
+                });
+                currentPosition++;
+
+                var text = "* * *\n";
+                requests.Add(new Request {
+                    InsertText = new InsertTextRequest {
+                        Text = text,
+                        Location = new Location {
+                            Index = currentPosition
+                        }
+                    }
+                });
+
+                requests.Add(new Request {
+                    UpdateParagraphStyle = new UpdateParagraphStyleRequest {
+                        Range = new Range {
+                            StartIndex = currentPosition,
+                            EndIndex = currentPosition + text.Length
+                        },
+                        ParagraphStyle = new ParagraphStyle { Alignment = "CENTER", Direction = "LEFT_TO_RIGHT"},
+                        Fields = "Alignment,Direction"
+                    }
+                });
+                currentPosition += text.Length;
+
+                requests.Add(new Request {
+                    InsertText = new InsertTextRequest {
+                        Text = "\n",
+                        Location = new Location {
+                            Index = currentPosition
+                        }
+                    }
+                });
+                currentPosition++;
             }
 
             if (isNewChapter) {
@@ -166,6 +198,7 @@ internal sealed class GoogleDocService : IGoogleDocService {
                 });
 
                 currentPosition += text.Length;
+                addBreakBeforeNextSection = false;
 
                 continue;
             }
@@ -232,6 +265,7 @@ internal sealed class GoogleDocService : IGoogleDocService {
                     }
 
                     currentPosition += element.TextRun.Content.Length;
+                    addBreakBeforeNextSection = true;
                 }
             }
         }
