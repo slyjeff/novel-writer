@@ -27,7 +27,7 @@
             </Button>
 
 
-<!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+            <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
             <Button DockPanel.Dock="Right" 
                     ToolTip="Close Novel"
                     Margin="10,5,10,5"

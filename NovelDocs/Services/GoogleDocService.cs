@@ -7,42 +7,51 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Docs.v1;
 using Google.Apis.Docs.v1.Data;
 using Google.Apis.Drive.v3;
-using Google.Apis.Drive.v3.Data;
 using Google.Apis.Services;
 using Google.Apis.Util;
-using NovelDocs.Entity;
+using File = Google.Apis.Drive.v3.Data.File;
 using Range = Google.Apis.Docs.v1.Data.Range;
 
 namespace NovelDocs.Services;
 
 public interface IGoogleDocService {
+    Task<string> CreateDirectory(string parentId, string name);
+    Task<string> CreateDocument(string directoryId, string name);
     Task<bool> GoogleDocExists (string googleDocId);
-    Task<string> CreateDocument(IGoogleDocViewModel googleDocViewModel);
     Task RenameDoc(string googleDocId, string newName);
-    Task Compile();
+    Task ClearDoc(string manuscriptId);
+    Task Compile(string documentId, IList<string> idsToCompile);
 }
 
 internal sealed class GoogleDocService : IGoogleDocService {
-    private readonly IDataPersister _dataPersister;
+    public async Task<string> CreateDirectory(string parentId, string name) {
+        var directory = new File {
+            Name = name,
+            MimeType = "application/vnd.google-apps.folder",
+            Parents = new List<string> { parentId }
+        };
 
-    public GoogleDocService(IDataPersister dataPersister) {
-        _dataPersister = dataPersister;
-    }
-
-    public async Task<string> CreateDocument(IGoogleDocViewModel googleDocViewModel) {
         var credentials = await GetCredentials();
         var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
-        var directory = await GetSubDirectory(googleDocViewModel.GoogleDocType);
+        var newDirectory = await driveService.Files.Create(directory).ExecuteAsync();
 
+        return newDirectory.Id;
+    }
+
+    public async Task<string> CreateDocument(string directoryId, string name) {
         var doc = new File {
-            Name = googleDocViewModel.Name,
+            Name = name,
             MimeType = "application/vnd.google-apps.document",
-            Parents = new List<string> { directory }
+            Parents = new List<string> { directoryId }
         };
+
+        var credentials = await GetCredentials();
+        var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
 
         var newDoc = await driveService.Files.Create(doc).ExecuteAsync();
         return newDoc.Id;
     }
+
 
     public async Task RenameDoc(string googleDocId, string newName) {
         if (! await GoogleDocExists(googleDocId)) {
@@ -64,7 +73,6 @@ internal sealed class GoogleDocService : IGoogleDocService {
         }
 
         var credentials = await GetCredentials();
-
         var docsService = new DocsService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
         try {
             return (await docsService.Documents.Get(googleDocId).ExecuteAsync() != null);
@@ -73,39 +81,40 @@ internal sealed class GoogleDocService : IGoogleDocService {
         }
     }
 
-    public async Task Compile() {
-        var novel = _dataPersister.GetLastOpenedNovel();
-        if (novel == null) {
+    public async Task ClearDoc(string manuscriptId) {
+        var credentials = await GetCredentials();
+        var docsService = new DocsService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
+        var requests = new List<Request>();
+        var fullManuscript = await docsService.Documents.Get(manuscriptId).ExecuteAsync();
+        var existingLength = fullManuscript.Body.Content.Sum(GetLengthOfStructuralElement);
+        if (existingLength <= 2) {
             return;
         }
 
+        requests.Add(new Request {
+            DeleteContentRange = new DeleteContentRangeRequest {
+                Range = new Range {
+                    StartIndex = 1,
+                    EndIndex = existingLength - 1
+                }
+            }
+        });
+
+        var batchUpdate = new BatchUpdateDocumentRequest {
+            Requests = requests
+        };
+
+        await docsService.Documents.BatchUpdate(batchUpdate, fullManuscript.DocumentId).ExecuteAsync();
+    }
+
+    public async Task Compile(string documentId, IList<string> idsToCompile) {
         var credentials = await GetCredentials();
-        var initializer = new BaseClientService.Initializer { HttpClientInitializer = credentials };
-        var driveService = new DriveService(initializer);
-        var docsService = new DocsService(initializer);
-
-        var manuscriptId = novel.ManuscriptId;
-        if (!await GoogleDocExists(manuscriptId)) {
-            var doc = new File {
-                Name = novel.Name,
-                MimeType = "application/vnd.google-apps.document",
-                Parents = new List<string> { novel.GoogleDriveFolder }
-            };
-
-            var newDoc = await driveService.Files.Create(doc).ExecuteAsync();
-            novel.ManuscriptId = newDoc.Id;
-            _dataPersister.Save();
-
-            manuscriptId = newDoc.Id;
-        } else {
-            await ClearExistingManuscript(manuscriptId, novel.Name);
-        }
+        var docsService = new DocsService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
+        var fullManuscript = await docsService.Documents.Get(documentId).ExecuteAsync();
 
         var requests = new List<Request>();
-        var fullManuscript = await docsService.Documents.Get(manuscriptId).ExecuteAsync();
-
         var currentPosition = 1;
-        foreach (var docId in await GetDocIdsFromManuscriptElements(novel.ManuscriptElements)) {
+        foreach (var docId in idsToCompile) {
             if (currentPosition != 1) {
                 //check if we need to add a page break or line break
                 if (string.IsNullOrEmpty(docId)) {
@@ -205,57 +214,6 @@ internal sealed class GoogleDocService : IGoogleDocService {
         await docsService.Documents.BatchUpdate(batchUpdate, fullManuscript.DocumentId).ExecuteAsync();
     }
 
-    private async Task ClearExistingManuscript(string manuscriptId, string novelName) {
-        var credentials = await GetCredentials();
-        var docsService = new DocsService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
-        await RenameDoc(manuscriptId, novelName);
-        var requests = new List<Request>();
-        var fullManuscript = await docsService.Documents.Get(manuscriptId).ExecuteAsync();
-        var existingLength = fullManuscript.Body.Content.Sum(GetLengthOfStructuralElement);
-        if (existingLength <= 2) {
-            return;
-        }
-
-        requests.Add(new Request {
-            DeleteContentRange = new DeleteContentRangeRequest {
-                Range = new Range {
-                    StartIndex = 1,
-                    EndIndex = existingLength - 1
-                }
-            }
-        });
-
-        var batchUpdate = new BatchUpdateDocumentRequest {
-            Requests = requests
-        };
-
-        await docsService.Documents.BatchUpdate(batchUpdate, fullManuscript.DocumentId).ExecuteAsync();
-    }
-
-    private async Task<IList<string>> GetDocIdsFromManuscriptElements(IEnumerable<ManuscriptElement> manuscriptElements) {
-        var docIds = new List<string>();
-        var sceneHasBeenInsertAtThisLevel = false;
-        foreach (var manuscriptElement in manuscriptElements) {
-            if (manuscriptElement.Type != ManuscriptElementType.Scene) {
-                docIds.AddRange(await GetDocIdsFromManuscriptElements(manuscriptElement.ManuscriptElements));
-                continue;
-            }
-
-            if (!await GoogleDocExists(manuscriptElement.GoogleDocId)) {
-                continue;
-            }
-
-            if (!sceneHasBeenInsertAtThisLevel) {
-                docIds.Add(string.Empty);
-                sceneHasBeenInsertAtThisLevel = true;
-            }
-
-            docIds.Add(manuscriptElement.GoogleDocId);
-        }
-
-        return docIds;
-    }
-
     private static int GetLengthOfStructuralElement(StructuralElement element) {
         if (element.Paragraph == null) {
             return 1;
@@ -276,39 +234,6 @@ internal sealed class GoogleDocService : IGoogleDocService {
         }
 
         return length;
-    }
-
-    private async Task<string> GetSubDirectory(GoogleDocType googleDocType) {
-        var novel = _dataPersister.GetLastOpenedNovel();
-        if (novel == null) {
-            return string.Empty;
-        }
-
-        var directoryId = (googleDocType == GoogleDocType.Character)
-            ? novel.CharactersFolder
-            : novel.ScenesFolder;
-
-        if (!string.IsNullOrEmpty(directoryId)) {
-            return directoryId;
-        }
-
-        var directory = new File {
-            Name = googleDocType.ToString(),
-            MimeType = "application/vnd.google-apps.folder",
-            Parents = new List<string> {novel.GoogleDriveFolder}
-        };
-
-        var credentials = await GetCredentials();
-        var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
-        var newDirectory = await driveService.Files.Create(directory).ExecuteAsync();
-
-        if (googleDocType == GoogleDocType.Character) {
-            novel.CharactersFolder = newDirectory.Id;
-        } else {
-            novel.ScenesFolder = newDirectory.Id;
-        }
-
-        return newDirectory.Id;
     }
 
     private static async Task<UserCredential> GetCredentials() {

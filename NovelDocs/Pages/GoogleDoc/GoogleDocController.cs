@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using System.Timers;
 using CefSharp;
 using CefSharp.Wpf;
+using NovelDocs.Managers;
 using NovelDocs.PageControls;
-using NovelDocs.Services;
 
 namespace NovelDocs.Pages.GoogleDoc;
 
@@ -16,13 +16,13 @@ public interface IGoogleDocController {
 }
 
 internal sealed class GoogleDocController : Controller<GoogleDocView, GoogleDocViewModel>, IGoogleDocController {
-    private readonly IGoogleDocService _googleDocService;
+    private readonly IGoogleDocManager _googleDocManager;
     private IGoogleDocViewModel? _googleDocViewModel;
 
     private readonly IDictionary<string, ChromiumWebBrowser> _browsers = new Dictionary<string, ChromiumWebBrowser>();
 
-    public GoogleDocController(IGoogleDocService googleDocService) {
-        _googleDocService = googleDocService;
+    public GoogleDocController(IGoogleDocManager googleDocService) {
+        _googleDocManager = googleDocService;
         var settings = new CefSettings {
             UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36 /CefSharp Browser" + Cef.CefSharpVersion,
             CachePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)
@@ -67,7 +67,7 @@ internal sealed class GoogleDocController : Controller<GoogleDocView, GoogleDocV
             return;
         }
 
-        await _googleDocService.RenameDoc(_googleDocViewModel.GoogleDocId, _googleDocViewModel.Name);
+        await _googleDocManager.RenameDoc(_googleDocViewModel.GoogleDocId, _googleDocViewModel.Name);
 
         _renameTimer.Elapsed -= RenameDoc;
         _renameTimer.Stop();
@@ -89,7 +89,7 @@ internal sealed class GoogleDocController : Controller<GoogleDocView, GoogleDocV
             return;
         }
 
-        if (!await _googleDocService.GoogleDocExists(_googleDocViewModel.GoogleDocId)) {
+        if (!await _googleDocManager.GoogleDocExists(_googleDocViewModel.GoogleDocId)) {
             ViewModel.DocumentExists = false;
             return;
         }
@@ -117,7 +117,7 @@ internal sealed class GoogleDocController : Controller<GoogleDocView, GoogleDocV
             return;
         }
 
-        _googleDocViewModel.GoogleDocId = await _googleDocService.CreateDocument(_googleDocViewModel);
+        _googleDocViewModel.GoogleDocId = await _googleDocManager.CreateDocument(_googleDocViewModel);
     }
 
     [Command]
