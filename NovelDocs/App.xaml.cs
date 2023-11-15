@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using NovelDocs.Extensions;
 using NovelDocs.Initialization;
+using NovelDocs.Managers;
 using NovelDocs.PageControls;
 using NovelDocs.Pages.GoogleDoc;
 using NovelDocs.Pages.Main;
@@ -24,7 +25,10 @@ public partial class App {
         services
             .AddSingleton<IDataPersister, DataPersister>()
             .AddSingleton<IGoogleDocController, GoogleDocController>()
-            .AddTransient<IGoogleDocService, GoogleDocService>();
+            .AddTransient<IGoogleDocManager, GoogleDocManager>()
+            .AddTransient<IGoogleDocService, GoogleDocService>()
+            .AddTransient<IMsWordManager, MsWordManager>()
+            .AddTransient<IMsWordService, MsWordService>();
     }
 
     private void App_OnStartup(object sender, StartupEventArgs e) {

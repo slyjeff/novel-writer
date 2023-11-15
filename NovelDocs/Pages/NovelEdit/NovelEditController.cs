@@ -4,6 +4,7 @@ using System.Windows;
 using Microsoft.Win32;
 using NovelDocs.Entity;
 using NovelDocs.Extensions;
+using NovelDocs.Managers;
 using NovelDocs.PageControls;
 using NovelDocs.Pages.CharacterDetails;
 using NovelDocs.Pages.GoogleDoc;
@@ -17,14 +18,14 @@ namespace NovelDocs.Pages.NovelEdit;
 internal sealed class NovelEditController : Controller<NovelEditView, NovelEditViewModel> {
     private readonly IServiceProvider _serviceProvider;
     private readonly IDataPersister _dataPersister;
-    private readonly IGoogleDocService _googleDocService;
+    private readonly IGoogleDocManager _googleDocManager;
     private Action _novelClosed = null!; //will never be null because initialize will always be called
     private Novel _novel = null!; //will never be null because initialize will always be called
 
-    public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister, IGoogleDocController googleDocController, IGoogleDocService googleDocService) {
+    public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister, IGoogleDocController googleDocController, IGoogleDocManager googleDocManager) {
         _serviceProvider = serviceProvider;
         _dataPersister = dataPersister;
-        _googleDocService = googleDocService;
+        _googleDocManager = googleDocManager;
 
         ViewModel.GoogleDocView = googleDocController.View;
 
@@ -231,7 +232,7 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
             return;
         }
 
-        await _googleDocService.Compile();
+        await _googleDocManager.Compile();
 
         var address = $"https://docs.google.com/document/d/{_novel.ManuscriptId}";
         System.Diagnostics.Process.Start(GetSystemDefaultBrowser(), address);
@@ -248,7 +249,8 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     public void AddSection(ManuscriptElementTreeItem? parent) {
         var section = new ManuscriptElement {
             Name = "New Section",
-            Type = ManuscriptElementType.Section
+            Type = ManuscriptElementType.Section,
+            IsChapter = true
         };
 
         AddManuscriptElement(parent, section);

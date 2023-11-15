@@ -27,6 +27,11 @@ public abstract class SectionDetailsViewModel : ViewModel {
         set => _section.Name = value;
     }
 
+    public virtual bool IsChapter {
+        get => _section.IsChapter;
+        set => _section.IsChapter = value;
+    }
+
     public virtual string Summary {
         get => _section.Summary;
         set => _section.Summary = value;
