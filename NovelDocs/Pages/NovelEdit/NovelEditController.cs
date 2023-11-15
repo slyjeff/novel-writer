@@ -249,7 +249,8 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     public void AddSection(ManuscriptElementTreeItem? parent) {
         var section = new ManuscriptElement {
             Name = "New Section",
-            Type = ManuscriptElementType.Section
+            Type = ManuscriptElementType.Section,
+            IsChapter = true
         };
 
         AddManuscriptElement(parent, section);

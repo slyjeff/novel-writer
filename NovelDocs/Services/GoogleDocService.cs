@@ -115,9 +115,14 @@ internal sealed class GoogleDocService : IGoogleDocService {
         var requests = new List<Request>();
         var currentPosition = 1;
         foreach (var docId in idsToCompile) {
+            if (string.IsNullOrEmpty(docId)) {
+                continue;
+            }
+
+            var isNewChapter = docId.StartsWith("Chapter:");
             if (currentPosition != 1) {
                 //check if we need to add a page break or line break
-                if (string.IsNullOrEmpty(docId)) {
+                if (isNewChapter) {
                     requests.Add(new Request {
                         InsertPageBreak = new InsertPageBreakRequest {
                             EndOfSegmentLocation = new EndOfSegmentLocation()
@@ -137,7 +142,31 @@ internal sealed class GoogleDocService : IGoogleDocService {
                 }
             }
 
-            if (string.IsNullOrEmpty(docId)) {
+            if (isNewChapter) {
+                var text = docId["Chapter:".Length..] + "\n";
+
+                requests.Add(new Request {
+                    InsertText = new InsertTextRequest {
+                        Text = text,
+                        Location = new Location {
+                            Index = currentPosition
+                        }
+                    }
+                });
+
+                requests.Add(new Request {
+                    UpdateParagraphStyle = new UpdateParagraphStyleRequest {
+                        Range = new Range {
+                            StartIndex = currentPosition,
+                            EndIndex = currentPosition
+                        },
+                        ParagraphStyle = new ParagraphStyle {NamedStyleType = "HEADING_1"},
+                        Fields = "NamedStyleType"
+                    }
+                });
+
+                currentPosition += text.Length;
+
                 continue;
             }
 

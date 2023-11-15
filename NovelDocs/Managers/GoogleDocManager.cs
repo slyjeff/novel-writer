@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NovelDocs.Entity;
 using NovelDocs.Services;
@@ -82,20 +83,17 @@ internal sealed class GoogleDocManager : IGoogleDocManager{
 
     private async Task<IList<string>> GetDocIdsFromManuscriptElements(IEnumerable<ManuscriptElement> manuscriptElements) {
         var docIds = new List<string>();
-        var sceneHasBeenInsertAtThisLevel = false;
         foreach (var manuscriptElement in manuscriptElements) {
             if (manuscriptElement.Type != ManuscriptElementType.Scene) {
+                if (manuscriptElement.IsChapter) {
+                    docIds.Add($"Chapter:{manuscriptElement.Name}");
+                }
                 docIds.AddRange(await GetDocIdsFromManuscriptElements(manuscriptElement.ManuscriptElements));
                 continue;
             }
 
             if (!await GoogleDocExists(manuscriptElement.GoogleDocId)) {
                 continue;
-            }
-
-            if (!sceneHasBeenInsertAtThisLevel) {
-                docIds.Add(string.Empty);
-                sceneHasBeenInsertAtThisLevel = true;
             }
 
             docIds.Add(manuscriptElement.GoogleDocId);

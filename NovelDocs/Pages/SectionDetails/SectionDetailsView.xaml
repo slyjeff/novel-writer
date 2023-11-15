@@ -9,10 +9,12 @@
     <UserControl.Resources>
         <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource EditPanelTextBlock}" />
         <Style TargetType="{x:Type TextBox}"  BasedOn="{StaticResource EditPanelTextBox}" />
+        <Style TargetType="{x:Type CheckBox}"  BasedOn="{StaticResource EditPanelCheckBox}" />
     </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -23,16 +25,20 @@
             <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
 
-        <StackPanel Grid.Row="1"
-                    Orientation="Vertical">
-        <TextBlock Text="Summary:"/>
+        <CheckBox Grid.Row="1"
+                  Content="Chapter"
+                  IsChecked="{Binding IsChapter, Mode=TwoWay}" />
 
-        <TextBox TextWrapping="Wrap"
-                 AcceptsReturn="True"
-                 VerticalScrollBarVisibility="Auto"
-                 HorizontalAlignment="Left"
-                 Height="200"
-                 Text="{Binding Summary, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <StackPanel Grid.Row="2"
+                    Orientation="Vertical">
+            <TextBlock Text="Summary:"/>
+
+            <TextBox TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalAlignment="Left"
+                     Height="400"
+                     Text="{Binding Summary, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
 
 

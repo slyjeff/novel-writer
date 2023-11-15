@@ -7,6 +7,8 @@ public enum ManuscriptElementType { Section, Scene }
 
 public sealed class ManuscriptElement : IGoogleDocItem {
     public string Name { get; set; } = string.Empty;
+
+    public bool IsChapter { get; set; }
     
     public ManuscriptElementType Type { get; set; }
 
