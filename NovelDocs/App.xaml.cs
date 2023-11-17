@@ -4,6 +4,7 @@ using NovelDocs.Extensions;
 using NovelDocs.Initialization;
 using NovelDocs.Managers;
 using NovelDocs.PageControls;
+using NovelDocs.Pages.CompileStatus;
 using NovelDocs.Pages.GoogleDoc;
 using NovelDocs.Pages.Main;
 using NovelDocs.Services;
@@ -28,7 +29,8 @@ public partial class App {
             .AddTransient<IGoogleDocManager, GoogleDocManager>()
             .AddTransient<IGoogleDocService, GoogleDocService>()
             .AddTransient<IMsWordManager, MsWordManager>()
-            .AddTransient<IMsWordService, MsWordService>();
+            .AddTransient<ICompileStatusController, CompileStatusController>()
+            .AddTransient<ICompileStatusService, CompileStatusService>();
     }
 
     private void App_OnStartup(object sender, StartupEventArgs e) {

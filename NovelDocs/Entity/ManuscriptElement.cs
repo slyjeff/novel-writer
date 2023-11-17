@@ -21,3 +21,26 @@ public sealed class ManuscriptElement : IGoogleDocItem {
     public IList<PlotPoint> PlotPoints { get; set; } = new List<PlotPoint>();
     public IList<Guid> CharactersInScene { get; set; } = new List<Guid>();
 }
+
+public static class ManuscriptElementExtensions {
+     public static IList<string> GetDocIds(this IEnumerable<ManuscriptElement> manuscriptElements) {
+        var docIds = new List<string>();
+        foreach (var manuscriptElement in manuscriptElements) {
+            if (manuscriptElement.Type != ManuscriptElementType.Scene) {
+                if (manuscriptElement.IsChapter) {
+                    docIds.Add($"Chapter:{manuscriptElement.Name}");
+                }
+                docIds.AddRange(manuscriptElement.ManuscriptElements.GetDocIds());
+                continue;
+            }
+
+            if (string.IsNullOrEmpty(manuscriptElement.GoogleDocId)) {
+                continue;
+            }
+
+            docIds.Add(manuscriptElement.GoogleDocId);
+        }
+
+        return docIds;
+    }
+}

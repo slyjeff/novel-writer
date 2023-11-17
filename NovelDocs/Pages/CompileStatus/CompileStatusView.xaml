@@ -1,0 +1,32 @@
+﻿<Window x:Class="NovelDocs.Pages.CompileStatus.CompileStatusView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:compileStatus="clr-namespace:NovelDocs.Pages.CompileStatus"
+        mc:Ignorable="d"
+        WindowStartupLocation="CenterOwner"
+        SizeToContent="WidthAndHeight"
+        WindowStyle="SingleBorderWindow"
+        Background="Black"
+        Title="Compile Status" d:DataContext="{d:DesignInstance compileStatus:CompileStatusViewModel}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Foreground="White"
+                   Margin="20, 10, 20, 0"
+                   FontSize="16"
+                   Text="{Binding Chapter}" />
+
+        <ProgressBar Grid.Row="1"
+                     Width = "300"
+                     Margin="20"
+                     Minimum="0"
+                     Maximum="{Binding Max}"
+                     Value="{Binding Progress}" />
+    </Grid>
+</Window>

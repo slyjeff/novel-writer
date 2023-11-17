@@ -19,13 +19,15 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     private readonly IServiceProvider _serviceProvider;
     private readonly IDataPersister _dataPersister;
     private readonly IGoogleDocManager _googleDocManager;
+    private readonly IMsWordManager _msWordManager;
     private Action _novelClosed = null!; //will never be null because initialize will always be called
     private Novel _novel = null!; //will never be null because initialize will always be called
 
-    public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister, IGoogleDocController googleDocController, IGoogleDocManager googleDocManager) {
+    public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister, IGoogleDocController googleDocController, IGoogleDocManager googleDocManager, IMsWordManager msWordManager) {
         _serviceProvider = serviceProvider;
         _dataPersister = dataPersister;
         _googleDocManager = googleDocManager;
+        _msWordManager = msWordManager;
 
         ViewModel.GoogleDocView = googleDocController.View;
 
@@ -232,10 +234,12 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
             return;
         }
 
-        await _googleDocManager.Compile();
+        await _msWordManager.Compile();
 
-        var address = $"https://docs.google.com/document/d/{_novel.ManuscriptId}";
-        System.Diagnostics.Process.Start(GetSystemDefaultBrowser(), address);
+        //await _googleDocManager.Compile();
+
+        //var address = $"https://docs.google.com/document/d/{_novel.ManuscriptId}";
+        //System.Diagnostics.Process.Start(GetSystemDefaultBrowser(), address);
     }
 
     [Command]

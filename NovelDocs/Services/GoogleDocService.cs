@@ -18,6 +18,7 @@ public interface IGoogleDocService {
     Task<string> CreateDirectory(string parentId, string name);
     Task<string> CreateDocument(string directoryId, string name);
     Task<bool> GoogleDocExists (string googleDocId);
+    Task<Document?> GetGoogleDoc(string googleDocId);
     Task RenameDoc(string googleDocId, string newName);
     Task ClearDoc(string manuscriptId);
     Task Compile(string documentId, IList<string> idsToCompile);
@@ -68,16 +69,20 @@ internal sealed class GoogleDocService : IGoogleDocService {
     }
 
     public async Task<bool> GoogleDocExists(string googleDocId) {
+        return await GetGoogleDoc(googleDocId) != null;
+    }
+
+    public async Task<Document?> GetGoogleDoc(string googleDocId) {
         if (string.IsNullOrEmpty(googleDocId)) {
-            return false;
+            return null;
         }
 
         var credentials = await GetCredentials();
         var docsService = new DocsService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
         try {
-            return (await docsService.Documents.Get(googleDocId).ExecuteAsync() != null);
+            return await docsService.Documents.Get(googleDocId).ExecuteAsync();
         } catch {
-            return false;
+            return null;
         }
     }
 
