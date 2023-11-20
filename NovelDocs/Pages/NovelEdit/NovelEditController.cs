@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using System.Windows;
+using Microsoft.Office.Interop.Word;
 using Microsoft.Win32;
 using NovelDocs.Entity;
 using NovelDocs.Extensions;
@@ -11,7 +12,9 @@ using NovelDocs.Pages.GoogleDoc;
 using NovelDocs.Pages.NovelDetails;
 using NovelDocs.Pages.SceneDetails;
 using NovelDocs.Pages.SectionDetails;
+using NovelDocs.Pages.TypesettingOptions;
 using NovelDocs.Services;
+using Task = System.Threading.Tasks.Task;
 
 namespace NovelDocs.Pages.NovelEdit; 
 
@@ -19,13 +22,15 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     private readonly IServiceProvider _serviceProvider;
     private readonly IDataPersister _dataPersister;
     private readonly IGoogleDocManager _googleDocManager;
+    private readonly IMsWordManager _msWordManager;
     private Action _novelClosed = null!; //will never be null because initialize will always be called
     private Novel _novel = null!; //will never be null because initialize will always be called
 
-    public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister, IGoogleDocController googleDocController, IGoogleDocManager googleDocManager) {
+    public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister, IGoogleDocController googleDocController, IGoogleDocManager googleDocManager, IMsWordManager msWordManager) {
         _serviceProvider = serviceProvider;
         _dataPersister = dataPersister;
         _googleDocManager = googleDocManager;
+        _msWordManager = msWordManager;
 
         ViewModel.GoogleDocView = googleDocController.View;
 
@@ -235,7 +240,15 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         await _googleDocManager.Compile();
 
         var address = $"https://docs.google.com/document/d/{_novel.ManuscriptId}";
-        System.Diagnostics.Process.Start(GetSystemDefaultBrowser(), address);
+        Process.Start(GetSystemDefaultBrowser(), address);
+    }
+
+    [Command]
+    public async Task TypesetNovel() {
+        var controller = _serviceProvider.CreateInstance<TypesettingOptionsController>();
+        if (controller.View.ShowDialog() == true) {
+            await _msWordManager.Compile();
+        }
     }
 
     [Command]

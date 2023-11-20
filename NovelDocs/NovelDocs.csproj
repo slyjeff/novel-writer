@@ -20,12 +20,29 @@
     <None Remove="Images\Documents.png" />
     <None Remove="Images\EmptyDocument.png" />
     <None Remove="Images\Manuscript.png" />
+    <None Remove="Images\MicrosoftWord.png" />
     <None Remove="Images\Scene.png" />
     <None Remove="Images\Section.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <COMReference Include="Microsoft.Office.Interop.Word">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>7</VersionMinor>
+      <VersionMajor>8</VersionMajor>
+      <Guid>00020905-0000-0000-c000-000000000046</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="Hopstarter-Soft-Scraps-Document-Copy.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\MicrosoftWord.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,6 +61,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

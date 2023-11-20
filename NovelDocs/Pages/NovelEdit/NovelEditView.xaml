@@ -18,7 +18,7 @@
 
             <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
             <Button DockPanel.Dock="Left" 
-                    ToolTip="Compile"
+                    ToolTip="Compile Into One GoogleDoc"
                     Margin="5"
                     Command="{Binding CompileNovel}">
                 <Image Margin="5"
@@ -26,6 +26,15 @@
                        Source="/images/Documents.png" />
             </Button>
 
+            <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+            <Button DockPanel.Dock="Left" 
+                    ToolTip="Typeset To MS Word"
+                    Margin="5"
+                    Command="{Binding TypesetNovel}">
+                <Image Margin="5"
+                       Width="25" 
+                       Source="/images/MicrosoftWord.png" />
+            </Button>
 
             <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
             <Button DockPanel.Dock="Right" 
