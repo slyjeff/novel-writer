@@ -20,6 +20,7 @@
     <None Remove="Images\Documents.png" />
     <None Remove="Images\EmptyDocument.png" />
     <None Remove="Images\Manuscript.png" />
+    <None Remove="Images\MicrosoftWord.png" />
     <None Remove="Images\Scene.png" />
     <None Remove="Images\Section.png" />
   </ItemGroup>
@@ -41,6 +42,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Images\MicrosoftWord.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Images\Character.png" />
     <Resource Include="Images\Character2.png" />
     <Resource Include="Images\Manuscript.png" />
@@ -56,6 +61,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

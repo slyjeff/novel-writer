@@ -64,6 +64,7 @@
         </Style>
 
         <Style TargetType="{x:Type Button}">
+            <Setter Property="Height" Value="30"/>
             <Setter Property="Background" Value="Indigo" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="SnapsToDevicePixels" Value="True" />

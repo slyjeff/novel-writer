@@ -3,26 +3,21 @@ using System.Collections.Generic;
 using Microsoft.Office.Interop.Word;
 using System.Reflection;
 using System.Text;
-using NovelDocs.Entity;
 using Document = Microsoft.Office.Interop.Word.Document;
 
 namespace NovelDocs.Services;
 
 
 internal sealed class MsWordDocument {
-    private readonly Novel _novel;
-    private const string TitleFontName = "Agency FB"; 
-    private const string BodyFontName = "Times New Roman"; 
-    private const int FontSize = 12;
-
     private readonly Application _word = new();
     private readonly float _pageHeight;
     private readonly Document _document;
     private object _missing = Missing.Value;
     private bool _firstChapter = true;
+    private string _title = string.Empty;
+    private string _author = string.Empty;
 
-    public MsWordDocument(Novel novel) {
-        _novel = novel;
+    public MsWordDocument() {
         _document = _word.Documents.Add();
         _pageHeight = 9;
 
@@ -39,17 +34,50 @@ internal sealed class MsWordDocument {
         _document.PageSetup.MirrorMargins = -1;
 
         _document.PageSetup.OddAndEvenPagesHeaderFooter = -1;
+    }
 
+    public void SetTitle(string title) {
+        _title = title;
+    }
+
+    public void SetAuthor(string author) {
+        _author = author;
+    }
+
+    public void SetTitleFont(string font) {
         var title = _document.Styles.get_Item(WdBuiltinStyle.wdStyleTitle);
-        title.Font.Name = TitleFontName;
+        title.Font.Name = font;
         title.Font.Size = 32;
         title.Font.Bold = 1;
         title.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
         title.NoSpaceBetweenParagraphsOfSameStyle = false;
         title.ParagraphFormat.FirstLineIndent = 0;
+    }
 
+    public void SetHeaderFont(string font, int fontSize) {
+        var header = _document.Styles.get_Item(WdBuiltinStyle.wdStyleHeader);
+        header.Font.Name = font;
+        header.Font.Size = fontSize;
+        header.Font.Bold = 1;
+        header.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
+        header.ParagraphFormat.FirstLineIndent = 0;
+        header.ParagraphFormat.SpaceBefore = 0;
+        header.ParagraphFormat.SpaceAfter = fontSize;
+    }
+
+    public void SetPageNumberFont(string font, int fontSize) {
+        var footer = _document.Styles.get_Item(WdBuiltinStyle.wdStyleFooter);
+        footer.Font.Name = font;
+        footer.Font.Size = fontSize;
+        footer.Font.Bold = 1;
+        footer.ParagraphFormat.FirstLineIndent = 0;
+        footer.ParagraphFormat.SpaceBefore = fontSize;
+        footer.ParagraphFormat.SpaceAfter = 0;
+    }
+
+    public void SetChapterFont(string font) {
         var chapter = _document.Styles.get_Item(WdBuiltinStyle.wdStyleHeading1);
-        chapter.Font.Name = TitleFontName;
+        chapter.Font.Name = font;
         chapter.Font.Size = 32;
         chapter.Font.Bold = 1;
         chapter.Font.Color = WdColor.wdColorBlack;
@@ -57,10 +85,12 @@ internal sealed class MsWordDocument {
         chapter.ParagraphFormat.SpaceBefore = _word.InchesToPoints(_pageHeight * 0.30f);
         chapter.ParagraphFormat.SpaceAfter = 26;
         chapter.ParagraphFormat.FirstLineIndent = 0;
+    }
 
+    public void SetBodyFont(string font, int fontSize) {
         var normal = _document.Styles.get_Item(WdBuiltinStyle.wdStyleNormal);
-        normal.Font.Name = BodyFontName;
-        normal.Font.Size = FontSize;
+        normal.Font.Name = font;
+        normal.Font.Size = fontSize;
         normal.Font.Bold = 0;
         normal.Font.Color = WdColor.wdColorBlack;
         normal.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphJustify;
@@ -70,19 +100,19 @@ internal sealed class MsWordDocument {
         normal.ParagraphFormat.LineSpacing = 15;
 
         var breakStyle = _document.Styles.Add("Break");
-        breakStyle.Font.Name = BodyFontName;
-        breakStyle.Font.Size = FontSize;
+        breakStyle.Font.Name = font;
+        breakStyle.Font.Size = fontSize;
         breakStyle.Font.Bold = 1;
         breakStyle.Font.Color = WdColor.wdColorBlack;
         breakStyle.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
         breakStyle.ParagraphFormat.FirstLineIndent = 0;
-        breakStyle.ParagraphFormat.SpaceBefore = FontSize;
-        breakStyle.ParagraphFormat.SpaceAfter = FontSize;
+        breakStyle.ParagraphFormat.SpaceBefore = fontSize;
+        breakStyle.ParagraphFormat.SpaceAfter = fontSize;
     }
 
     public void WriteTitlePage() {
         var title = _document.Content.Paragraphs.Add(ref _missing);
-        title.Range.Text = _novel.Name;
+        title.Range.Text = _title;
         title.set_Style(_document.Styles.get_Item(WdBuiltinStyle.wdStyleTitle));
         title.Format.FirstLineIndent = 0;
         title.Range.Font.Size = 40;
@@ -91,7 +121,7 @@ internal sealed class MsWordDocument {
         title.Range.InsertParagraphAfter();
 
         var author = _document.Content.Paragraphs.Add(ref _missing);
-        author.Range.Text = _novel.Author;
+        author.Range.Text = _author;
         author.set_Style(_document.Styles.get_Item(WdBuiltinStyle.wdStyleTitle));
         author.Format.FirstLineIndent = 0;
         author.Range.Bold = 0;
@@ -110,38 +140,35 @@ internal sealed class MsWordDocument {
 
         var oddHeader = section.Headers[WdHeaderFooterIndex.wdHeaderFooterPrimary];
         oddHeader.Range.Fields.Add(oddHeader.Range, WdFieldType.wdFieldPage);
+        oddHeader.Range.set_Style(_document.Styles.get_Item(WdBuiltinStyle.wdStyleHeader));
         oddHeader.Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphRight;
-        oddHeader.Range.Font.Size = 12;
-        oddHeader.Range.Font.Name = "Agency FB";
         oddHeader.Range.Font.Bold = 1;
-        oddHeader.Range.Text = _novel.Name;
-        oddHeader.Range.ParagraphFormat.SpaceAfter = 12f;
+        oddHeader.Range.Text = _title;
 
         var evenHeader = section.Headers[WdHeaderFooterIndex.wdHeaderFooterEvenPages];
         evenHeader.Range.Fields.Add(evenHeader.Range, WdFieldType.wdFieldPage);
+        evenHeader.Range.set_Style(_document.Styles.get_Item(WdBuiltinStyle.wdStyleHeader));
         evenHeader.Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
         evenHeader.Range.ParagraphFormat.FirstLineIndent = 0;
-        evenHeader.Range.ParagraphFormat.SpaceAfter = 12f;
-
-        evenHeader.Range.Font.Size = 12;
-        evenHeader.Range.Font.Name = "Agency FB";
         evenHeader.Range.Font.Bold = 1;
-        evenHeader.Range.Text = _novel.Author;
+        evenHeader.Range.Text = _author;
+
+        var footerStyle = _document.Styles.get_Item(WdBuiltinStyle.wdStyleFooter);
 
         var oddFooter = section.Footers[WdHeaderFooterIndex.wdHeaderFooterPrimary];
+        oddFooter.Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphRight;
         oddFooter.PageNumbers.RestartNumberingAtSection = _firstChapter;
+        oddFooter.Range.Font = footerStyle.Font;
         _firstChapter = false;
 
         oddFooter.PageNumbers.StartingNumber = 1;
-        oddFooter.Range.Font.Size = 12;
-        oddFooter.Range.Font.Name = "Agency FB";
 
         oddFooter.PageNumbers.Add();
 
         var evenFooter = section.Footers[WdHeaderFooterIndex.wdHeaderFooterEvenPages];
-        evenFooter.Range.Font.Name = "Agency FB";
-        evenFooter.Range.Font.Size = 12;
+        evenFooter.Range.Font = footerStyle.Font;
         evenFooter.Range.ParagraphFormat.FirstLineIndent = 0;
+        evenFooter.Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
 
         var chapter = _document.Content.Paragraphs.Add(ref _missing);
         chapter.Range.Text = chapterName;

@@ -29,8 +29,15 @@ internal sealed class MsWordManager : IMsWordManager {
 
         var cancelCompile = false;
         using (var compileStatus = _compileStatusService.ShowCompileStatus(docIds.Count, () => cancelCompile = true)) {
+            var document = new MsWordDocument();
+            document.SetTitle(novel.Name);
+            document.SetAuthor(novel.Author);
+            document.SetTitleFont(novel.Typesetting.TitleFont);
+            document.SetHeaderFont(novel.Typesetting.HeaderFont, novel.Typesetting.HeaderFontSize);
+            document.SetPageNumberFont(novel.Typesetting.PageNumberFont, novel.Typesetting.PageNumberFontSize);
+            document.SetChapterFont(novel.Typesetting.ChapterFont);
+            document.SetBodyFont(novel.Typesetting.BodyFont, novel.Typesetting.BodyFontSize);
 
-            var document = new MsWordDocument(novel);
             document.WriteTitlePage();
 
             var writeBreak = false;
