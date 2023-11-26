@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CefSharp.DevTools.DOM;
+using System;
 using System.Collections.Generic;
 
 namespace NovelDocs.Entity; 
@@ -9,6 +10,7 @@ public sealed class Novel {
     public string CopyrightYear { get; set; } = DateTime.Today.Year.ToString();
     public string GoogleDriveFolder { get; set; } = string.Empty;
     public string ScenesFolder { get; set; } = string.Empty;
+    public string ImagesFolder { get; set; } = string.Empty;
     public string CharactersFolder { get; set; } = string.Empty;
     public DateTime LastModified { get; set; } = DateTime.Now;
     public string ManuscriptId { get; set; } = string.Empty;
@@ -17,6 +19,31 @@ public sealed class Novel {
     public IList<ManuscriptElement> ManuscriptElements = new List<ManuscriptElement>();
 
     public IList<Character> Characters = new List<Character>();
+
+    public string GetFolder(GoogleDocType googleDocType) {
+        return googleDocType switch {
+            GoogleDocType.Scene => ScenesFolder,
+            GoogleDocType.Character => CharactersFolder,
+            GoogleDocType.Image => ImagesFolder,
+            _ => throw new ArgumentOutOfRangeException(nameof(googleDocType), googleDocType, null)
+        };
+    }
+
+    public void SetFolder(GoogleDocType googleDocType, string newDirectoryId) {
+        switch (googleDocType) {
+            case GoogleDocType.Character:
+                CharactersFolder = newDirectoryId;
+                break;
+            case GoogleDocType.Scene:
+                ScenesFolder = newDirectoryId;
+                break;
+            case GoogleDocType.Image:
+                ImagesFolder = newDirectoryId;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(googleDocType), googleDocType, null);
+        }
+    }
 }
 
 public sealed class Typesetting {

@@ -4,7 +4,7 @@ using NovelDocs.PageControls;
 
 namespace NovelDocs;
 
-public enum GoogleDocType { Scene, Character }
+public enum GoogleDocType { Scene, Character, Image }
 
 public interface IGoogleDocViewModel : INotifyPropertyChanged {
     string Name { get; set; }

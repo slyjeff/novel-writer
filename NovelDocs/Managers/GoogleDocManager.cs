@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using NovelDocs.Entity;
 using NovelDocs.Services;
@@ -8,6 +9,8 @@ namespace NovelDocs.Managers;
 public interface IGoogleDocManager {
     Task<bool> GoogleDocExists(string googleDocId);
     Task<string> CreateDocument(IGoogleDocViewModel googleDocViewModel);
+    Task UploadImage(string imagePath);
+    Task DownloadImages();
     Task RenameDoc(string googleDocId, string name);
     Task Compile();
 }
@@ -26,32 +29,54 @@ internal sealed class GoogleDocManager : IGoogleDocManager{
     }
 
     public async Task<string> CreateDocument(IGoogleDocViewModel googleDocViewModel) {
+        var directoryId = await GetSubDirectory(googleDocViewModel.GoogleDocType);
+        return await _googleDocService.CreateDocument(directoryId, googleDocViewModel.Name);
+    }
+    public async Task UploadImage(string imagePath) {
+        var directoryId = await GetSubDirectory(GoogleDocType.Image);
+        
+        if (await _googleDocService.GetFileId(Path.GetFileName(imagePath), directoryId) != null) {
+            return;
+        }
+        await _googleDocService.UploadImage(directoryId, imagePath);
+    }
+
+    public async Task DownloadImages() {
         var novel = _dataPersister.CurrentNovel;
         if (novel == null) {
             throw new Exception("No open novel found.");
         }
 
-        var directoryId = await GetSubDirectory(novel, googleDocViewModel.GoogleDocType);
-        return await _googleDocService.CreateDocument(directoryId, googleDocViewModel.Name);
+        var directoryId = await GetSubDirectory(GoogleDocType.Image);
+
+        foreach (var character in novel.Characters) {
+            if (string.IsNullOrEmpty(character.ImageUriSource)) {
+                continue;
+            }
+
+            if (File.Exists(character.ImageUriSource)) {
+                continue;
+            }
+
+            await _googleDocService.DownloadImage(directoryId, character.ImageUriSource);
+        }
     }
 
-    private async Task<string> GetSubDirectory(Novel novel, GoogleDocType googleDocType) {
-        var directoryId = (googleDocType == GoogleDocType.Character)
-            ? novel.CharactersFolder
-            : novel.ScenesFolder;
+    private async Task<string> GetSubDirectory(GoogleDocType googleDocType) {
+        var novel = _dataPersister.CurrentNovel;
+        if (novel == null) {
+            throw new Exception("No open novel found.");
+        }
 
+        var directoryId = novel.GetFolder(googleDocType);
         if (!string.IsNullOrEmpty(directoryId)) {
             return directoryId;
         }
 
-        var newDirectoryId = await _googleDocService.CreateDirectory(novel.GoogleDriveFolder, googleDocType.ToString() + "s");
+        var newDirectoryId = await _googleDocService.CreateDirectory(novel.GoogleDriveFolder, googleDocType + "s");
 
-        if (googleDocType == GoogleDocType.Character) {
-            novel.CharactersFolder = newDirectoryId;
-        } else {
-            novel.ScenesFolder = newDirectoryId;
-        }
-
+        novel.SetFolder(googleDocType, newDirectoryId);
+        
         return newDirectoryId;
     }
 

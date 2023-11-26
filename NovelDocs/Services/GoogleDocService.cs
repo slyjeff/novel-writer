@@ -39,6 +39,8 @@ public interface IGoogleDocService {
     Task<IList<IGoogleDirectory>> GetDirectoryList(string? parentId = null);
     Task<string> CreateFile(string filename, string parentId, string data);
     Task UpdateFile(string fileId, string newData);
+    Task UploadImage(string parentId, string imagePaths);
+    Task DownloadImage(string directoryId, string filePath);
     Task<string?> GetFileId(string name, string parentId);
     Task<string> GetFileContents(string id);
     Task<string> CreateDirectory(string parentId, string name);
@@ -96,6 +98,43 @@ internal sealed class GoogleDocService : IGoogleDocService {
             if (result.Status != UploadStatus.Completed) {
                 throw new Exception("Error uploading file to Google Docs.");
             }
+        }
+    }
+
+    public async Task UploadImage(string parentId, string imagePath) {
+        var fileName = Path.GetFileName(imagePath);
+        var extension = Path.GetExtension(imagePath)[1..]; //remove the dot
+
+        var file = new File {
+            Name = fileName,
+            Parents = new List<string> { parentId }
+        };
+
+        var credentials = await GetCredentials();
+        var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
+
+        using (var stream = new FileStream(imagePath, FileMode.Open)) {
+            var request = driveService.Files.Create(file, stream, $"image/{extension}");
+
+            var response = await request.UploadAsync();
+            if (response.Status != UploadStatus.Completed) {
+                throw new Exception($"Upload of file {imagePath} failed.");
+            }
+        }
+    }
+
+    public async Task DownloadImage(string directoryId, string filePath) {
+        var fileName = Path.GetFileName(filePath);
+        var imageId = await GetFileId(fileName, directoryId);
+        if (string.IsNullOrEmpty(imageId)) {
+            return;
+        }
+
+        var credentials = await GetCredentials();
+        var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
+
+        using (var outputStream = new FileStream(filePath, FileMode.Create)) {
+            await driveService.Files.Get(imageId).DownloadAsync(outputStream);
         }
     }
 

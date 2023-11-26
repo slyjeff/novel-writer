@@ -13,7 +13,7 @@ namespace NovelDocs.Pages.NovelSelect;
 internal sealed class NovelSelectController : Controller<NovelSelectView, NovelSelectViewModel> {
     private readonly IDataPersister _dataPersister;
     private readonly IServiceProvider _serviceProvider;
-    private Action? _openNovel;
+    private Func<Task>? _openNovel;
     
     public NovelSelectController(IDataPersister dataPersister, IServiceProvider serviceProvider) {
         _dataPersister = dataPersister;
@@ -37,7 +37,7 @@ internal sealed class NovelSelectController : Controller<NovelSelectView, NovelS
             if (!await _dataPersister.OpenNovel(novelData)) {
                 return;
             }
-            _openNovel();
+            await _openNovel();
             return;
         }
 
@@ -49,10 +49,10 @@ internal sealed class NovelSelectController : Controller<NovelSelectView, NovelS
 
         await _dataPersister.AddNovel(controller.ViewModel.SelectedDirectory);
 
-        _openNovel();
+        await _openNovel();
     }
 
-    public void Initialize(Action openNovel) {
+    public void Initialize(Func<Task> openNovel) {
         _openNovel = openNovel;
     }
 }

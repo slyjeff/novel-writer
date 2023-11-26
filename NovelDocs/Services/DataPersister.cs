@@ -3,8 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using NovelDocs.Entity;
+using NovelDocs.Managers;
 
 namespace NovelDocs.Services;
 
@@ -19,12 +21,14 @@ public interface IDataPersister {
 
 internal sealed class DataPersister : IDataPersister {
     private readonly IGoogleDocService _googleDocService;
+    private readonly IServiceProvider _serviceProvider;
     private const string FileName = "data.nd";
     private Data? _data;
     private OpenedNovel? _currentlyOpenedNovel;
 
-    public DataPersister(IGoogleDocService googleDocService) {
+    public DataPersister(IGoogleDocService googleDocService, IServiceProvider serviceProvider) {
         _googleDocService = googleDocService;
+        _serviceProvider = serviceProvider;
     }
 
     public Novel? CurrentNovel => _currentlyOpenedNovel?.Novel;
@@ -92,7 +96,6 @@ internal sealed class DataPersister : IDataPersister {
 
         await _googleDocService.UpdateFile(_currentlyOpenedNovel.NovelData.GoogleId, JsonConvert.SerializeObject(_currentlyOpenedNovel.Novel));
     }
-
 
     public async Task<bool> OpenNovel(NovelData? novelData = null) {
         if (novelData == null) {
