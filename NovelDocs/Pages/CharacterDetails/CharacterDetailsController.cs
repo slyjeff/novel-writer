@@ -17,15 +17,15 @@ internal sealed class CharacterDetailsController : Controller<CharacterDetailsVi
         _dataPersister = dataPersister;
         _googleDocController = googleDocController;
 
-        ViewModel.PropertyChanged += (_, _) => {
-            dataPersister.Save();
+        ViewModel.PropertyChanged += async (_, _) => {
+            await dataPersister.Save();
             _treeItem.OnPropertyChanged(nameof(CharacterTreeItem.Name));
         };
 
         View.FileDropped += FileDropped;
     }
 
-    private void FileDropped(string path) {
+    private async void FileDropped(string path) {
         var directory = AppDomain.CurrentDomain.BaseDirectory;
         var characterImagesDirectory = Path.Combine(directory, "characterImages");
         if (!Directory.Exists(characterImagesDirectory)) {
@@ -39,7 +39,7 @@ internal sealed class CharacterDetailsController : Controller<CharacterDetailsVi
         File.Copy(path, imagePath);
 
         _treeItem.Character.ImageUriSource = imagePath;
-        _dataPersister.Save();
+        await _dataPersister.Save();
         _treeItem.OnPropertyChanged(nameof(CharacterTreeItem.ImageUriSource));
         ViewModel.OnPropertyChanged(nameof(ViewModel.ImageUriSource));
     }

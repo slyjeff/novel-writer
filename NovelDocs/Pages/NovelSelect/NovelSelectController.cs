@@ -1,42 +1,58 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using NovelDocs.Entity;
+using NovelDocs.Extensions;
 using NovelDocs.PageControls;
+using NovelDocs.Pages.SelectGoogleDriveFolder;
 using NovelDocs.Services;
 
 namespace NovelDocs.Pages.NovelSelect; 
 
 internal sealed class NovelSelectController : Controller<NovelSelectView, NovelSelectViewModel> {
     private readonly IDataPersister _dataPersister;
-    private Action<Novel>? _openNovel;
+    private readonly IServiceProvider _serviceProvider;
+    private Action? _openNovel;
     
-    public NovelSelectController(IDataPersister dataPersister) {
+    public NovelSelectController(IDataPersister dataPersister, IServiceProvider serviceProvider) {
         _dataPersister = dataPersister;
+        _serviceProvider = serviceProvider;
         ViewModel.Novels = new List<NovelSelectAction> {
             new(null)
         };
 
-        foreach (var novel in dataPersister.Data.Novels) {
+        foreach (var novel in dataPersister.Data.Novels.OrderByDescending(x => x.LastModified)) {
             ViewModel.Novels.Add(new NovelSelectAction(novel));
         }
     }
 
     [Command]
-    public void ActionSelected(Novel? novel) {
+    public async Task ActionSelected(NovelData? novelData) {
         if (_openNovel == null) {
             return;
         }
 
-        if (novel == null) {
-            novel = new Novel();
-            _dataPersister.Data.Novels.Add(novel);
-            _dataPersister.Save();
+        if (novelData != null) {
+            if (!await _dataPersister.OpenNovel(novelData)) {
+                return;
+            }
+            _openNovel();
+            return;
         }
 
-        _openNovel(novel);
+        var controller = _serviceProvider.CreateInstance<SelectGoogleDriveFolderController>();
+        await controller.Initialize();
+        if (controller.View.ShowDialog() != true || controller.ViewModel.SelectedDirectory == null) {
+            return;
+        }
+
+        await _dataPersister.AddNovel(controller.ViewModel.SelectedDirectory);
+
+        _openNovel();
     }
 
-    public void Initialize(Action<Novel> openNovel) {
+    public void Initialize(Action openNovel) {
         _openNovel = openNovel;
     }
 }

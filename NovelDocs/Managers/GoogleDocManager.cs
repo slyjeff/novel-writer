@@ -26,7 +26,7 @@ internal sealed class GoogleDocManager : IGoogleDocManager{
     }
 
     public async Task<string> CreateDocument(IGoogleDocViewModel googleDocViewModel) {
-        var novel = _dataPersister.GetLastOpenedNovel();
+        var novel = _dataPersister.CurrentNovel;
         if (novel == null) {
             throw new Exception("No open novel found.");
         }
@@ -60,7 +60,7 @@ internal sealed class GoogleDocManager : IGoogleDocManager{
     }
 
     public async Task Compile() {
-        var novel = _dataPersister.GetLastOpenedNovel();
+        var novel = _dataPersister.CurrentNovel;
         if (novel == null) {
             throw new Exception("No open novel found.");
         }
@@ -69,7 +69,7 @@ internal sealed class GoogleDocManager : IGoogleDocManager{
         if (!await GoogleDocExists(manuscriptId)) {
             manuscriptId = await _googleDocService.CreateDocument(novel.GoogleDriveFolder, novel.Name);
             novel.ManuscriptId = manuscriptId;
-            _dataPersister.Save();
+            await _dataPersister.Save();
 
         } else {
             await RenameDoc(manuscriptId, novel.Name);

@@ -10,8 +10,8 @@ namespace NovelDocs.Pages.SectionDetails {
         public SectionDetailsController(IDataPersister dataPersister, IGoogleDocController googleDocController) {
             googleDocController.Hide();
 
-            ViewModel.PropertyChanged += (_, _) => {
-                dataPersister.Save();
+            ViewModel.PropertyChanged += async (_, _) => {
+                await dataPersister.Save();
                 _treeItem.OnPropertyChanged(nameof(ManuscriptElementTreeItem.Name));
             };
         }

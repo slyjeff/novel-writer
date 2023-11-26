@@ -20,7 +20,7 @@ internal sealed class MsWordManager : IMsWordManager {
     }
 
     public async Task Compile() {
-        var novel = _dataPersister.GetLastOpenedNovel();
+        var novel = _dataPersister.CurrentNovel;
         if (novel == null) {
             return;
         }

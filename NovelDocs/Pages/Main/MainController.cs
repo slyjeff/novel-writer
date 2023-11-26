@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using NovelDocs.Entity;
 using NovelDocs.Extensions;
 using NovelDocs.PageControls;
@@ -9,22 +10,25 @@ using NovelDocs.Services;
 namespace NovelDocs.Pages.Main; 
 
 internal sealed class MainController : Controller<MainView, MainViewModel> {
+    private readonly IDataPersister _dataPersister;
     private readonly IServiceProvider _serviceProvider;
 
     public MainController(IDataPersister dataPersister, IServiceProvider serviceProvider) {
+        _dataPersister = dataPersister;
         _serviceProvider = serviceProvider;
+    }
 
-        var novelToOpen = dataPersister.GetLastOpenedNovel();
-        if (novelToOpen == null) {
-            ShowNovelSelector();
+    public async Task Initialize() {
+        if (await _dataPersister.OpenNovel()) {
+            OpenNovel();
         } else {
-            OpenNovel(novelToOpen);
+            ShowNovelSelector();
         }
     }
 
-    private void OpenNovel(Novel novel) {
+    private void OpenNovel() {
         var novelEditController = _serviceProvider.CreateInstance<NovelEditController>();
-        novelEditController.Initialize(ShowNovelSelector, novel);
+        novelEditController.Initialize(ShowNovelSelector);
         ViewModel.Page = novelEditController.View;
     }
 

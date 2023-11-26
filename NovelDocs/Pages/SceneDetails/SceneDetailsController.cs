@@ -17,15 +17,15 @@ internal sealed class SceneDetailsController : Controller<SceneDetailsView, Scen
         _dataPersister = dataPersister;
         _googleDocController = googleDocController;
 
-        ViewModel.PropertyChanged += (_, e) => {
-            dataPersister.Save();
+        ViewModel.PropertyChanged += async (_, e) => {
+            await dataPersister.Save();
 
             if (e.PropertyName == nameof(ViewModel.Name)) {
                 _treeItem.OnPropertyChanged(nameof(ManuscriptElementTreeItem.Name));
             }
         };
 
-        var novel = dataPersister.GetLastOpenedNovel();
+        var novel = dataPersister.CurrentNovel;
         if (novel == null) {
             return;
         }
