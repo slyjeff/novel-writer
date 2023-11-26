@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
@@ -8,16 +10,42 @@ using Google.Apis.Docs.v1;
 using Google.Apis.Docs.v1.Data;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
+using Google.Apis.Upload;
 using Google.Apis.Util;
 using File = Google.Apis.Drive.v3.Data.File;
 using Range = Google.Apis.Docs.v1.Data.Range;
 
 namespace NovelDocs.Services;
 
+public interface IGoogleDirectory {
+    string Id { get; }
+    string Name { get; }
+}
+
+internal sealed class GoogleDirectory : IGoogleDirectory {
+    public GoogleDirectory(File directory) {
+        Id = directory.Id;
+        Name = directory.Name;
+    }
+
+    public string Id { get; }
+    public string Name { get; }
+    public override string ToString() {
+        return Name;
+    }
+}
+
 public interface IGoogleDocService {
+    Task<IList<IGoogleDirectory>> GetDirectoryList(string? parentId = null);
+    Task<string> CreateFile(string filename, string parentId, string data);
+    Task UpdateFile(string fileId, string newData);
+    Task UploadImage(string parentId, string imagePaths);
+    Task DownloadImage(string directoryId, string filePath);
+    Task<string?> GetFileId(string name, string parentId);
+    Task<string> GetFileContents(string id);
     Task<string> CreateDirectory(string parentId, string name);
     Task<string> CreateDocument(string directoryId, string name);
-    Task<bool> GoogleDocExists (string googleDocId);
+    Task<bool> GoogleDocExists(string googleDocId);
     Task<Document?> GetGoogleDoc(string googleDocId);
     Task RenameDoc(string googleDocId, string newName);
     Task ClearDoc(string manuscriptId);
@@ -25,6 +53,112 @@ public interface IGoogleDocService {
 }
 
 internal sealed class GoogleDocService : IGoogleDocService {
+    public async Task<IList<IGoogleDirectory>> GetDirectoryList(string? parentId = null) {
+        var credentials = await GetCredentials();
+        var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
+        var listRequest = driveService.Files.List();
+
+        parentId ??= "root";
+        listRequest.Q = $"'{parentId}' in parents and mimeType = 'application/vnd.google-apps.folder'";
+
+        var files = await listRequest.ExecuteAsync();
+        return files.Files.Select(x => (IGoogleDirectory)new GoogleDirectory(x)).ToList();
+    }
+
+    public async Task<string> CreateFile(string name, string parentId, string data) {
+        var file = new File {
+            Name = name,
+            Parents = new List<string> { parentId }
+        };
+
+        var credentials = await GetCredentials();
+        var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
+
+        using (var stream = new MemoryStream(Encoding.ASCII.GetBytes(data))) {
+            var request = driveService.Files.Create(file, stream, "application/octet-stream");
+            request.Fields = "id";
+
+            var response = await request.UploadAsync();
+            if (response.Status != UploadStatus.Completed) {
+                throw new Exception($"Upload of file {name} failed.");
+            }
+            return request.ResponseBody.Id;
+        }
+    }
+
+    public async Task UpdateFile(string fileId, string newData) {
+        var credentials = await GetCredentials();
+        var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
+
+        var file = await driveService.Files.Get(fileId).ExecuteAsync();
+        file.Id = null;
+
+        using (var stream = new MemoryStream(Encoding.ASCII.GetBytes(newData))) {
+            var result = await driveService.Files.Update(file, fileId, stream, "application/octet-stream").UploadAsync();
+            if (result.Status != UploadStatus.Completed) {
+                throw new Exception("Error uploading file to Google Docs.");
+            }
+        }
+    }
+
+    public async Task UploadImage(string parentId, string imagePath) {
+        var fileName = Path.GetFileName(imagePath);
+        var extension = Path.GetExtension(imagePath)[1..]; //remove the dot
+
+        var file = new File {
+            Name = fileName,
+            Parents = new List<string> { parentId }
+        };
+
+        var credentials = await GetCredentials();
+        var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
+
+        using (var stream = new FileStream(imagePath, FileMode.Open)) {
+            var request = driveService.Files.Create(file, stream, $"image/{extension}");
+
+            var response = await request.UploadAsync();
+            if (response.Status != UploadStatus.Completed) {
+                throw new Exception($"Upload of file {imagePath} failed.");
+            }
+        }
+    }
+
+    public async Task DownloadImage(string directoryId, string filePath) {
+        var fileName = Path.GetFileName(filePath);
+        var imageId = await GetFileId(fileName, directoryId);
+        if (string.IsNullOrEmpty(imageId)) {
+            return;
+        }
+
+        var credentials = await GetCredentials();
+        var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
+
+        using (var outputStream = new FileStream(filePath, FileMode.Create)) {
+            await driveService.Files.Get(imageId).DownloadAsync(outputStream);
+        }
+    }
+
+    public async Task<string?> GetFileId(string name, string parentId) {
+        var credentials = await GetCredentials();
+        var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
+        var listRequest = driveService.Files.List();
+
+        listRequest.Q = $"'{parentId}' in parents and name = '{name}'";
+
+        var files = await listRequest.ExecuteAsync();
+        return files.Files.FirstOrDefault()?.Id;
+    }
+
+    public async Task<string> GetFileContents(string fileId) {
+        var credentials = await GetCredentials();
+        var driveService = new DriveService(new BaseClientService.Initializer { HttpClientInitializer = credentials });
+
+        using (var outputStream = new MemoryStream()) {
+            await driveService.Files.Get(fileId).DownloadAsync(outputStream);
+            return Encoding.ASCII.GetString(outputStream.ToArray());
+        }
+    }
+
     public async Task<string> CreateDirectory(string parentId, string name) {
         var directory = new File {
             Name = name,
@@ -55,7 +189,7 @@ internal sealed class GoogleDocService : IGoogleDocService {
 
 
     public async Task RenameDoc(string googleDocId, string newName) {
-        if (! await GoogleDocExists(googleDocId)) {
+        if (!await GoogleDocExists(googleDocId)) {
             return;
         }
 
@@ -162,7 +296,7 @@ internal sealed class GoogleDocService : IGoogleDocService {
                             StartIndex = currentPosition,
                             EndIndex = currentPosition + text.Length
                         },
-                        ParagraphStyle = new ParagraphStyle { Alignment = "CENTER", Direction = "LEFT_TO_RIGHT"},
+                        ParagraphStyle = new ParagraphStyle { Alignment = "CENTER", Direction = "LEFT_TO_RIGHT" },
                         Fields = "Alignment,Direction"
                     }
                 });
@@ -197,7 +331,7 @@ internal sealed class GoogleDocService : IGoogleDocService {
                             StartIndex = currentPosition,
                             EndIndex = currentPosition
                         },
-                        ParagraphStyle = new ParagraphStyle {NamedStyleType = "HEADING_1"},
+                        ParagraphStyle = new ParagraphStyle { NamedStyleType = "HEADING_1" },
                         Fields = "NamedStyleType"
                     }
                 });
@@ -311,9 +445,9 @@ internal sealed class GoogleDocService : IGoogleDocService {
         };
 
         string[] scopes = {
-            "https://www.googleapis.com/auth/documents", 
-            "https://www.googleapis.com/auth/drive", 
-            "https://www.googleapis.com/auth/drive.file", 
+            "https://www.googleapis.com/auth/documents",
+            "https://www.googleapis.com/auth/drive",
+            "https://www.googleapis.com/auth/drive.file",
             "https://www.googleapis.com/auth/drive.appdata"
         };
 

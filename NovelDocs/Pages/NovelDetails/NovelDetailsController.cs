@@ -1,4 +1,5 @@
-﻿using NovelDocs.Entity;
+﻿using System.Threading.Tasks;
+using NovelDocs.Entity;
 using NovelDocs.PageControls;
 using NovelDocs.Pages.GoogleDoc;
 using NovelDocs.Services;
@@ -13,15 +14,13 @@ internal sealed class NovelDetailsController : Controller<NovelDetailsView, Nove
 
         googleDocController.Hide();
 
-        ViewModel.PropertyChanged += (_, _) => {
-            _dataPersister.Data.LastOpenedNovel = ViewModel.Name;
-            dataPersister.Save();
+        ViewModel.PropertyChanged += async (_, _) => {
+            await dataPersister.Save();
         };
     }
 
-    public void Initialize(Novel novelToLoad) {
+    public async Task Initialize(Novel novelToLoad) {
         ViewModel.SetNovel(novelToLoad);
-        _dataPersister.Data.LastOpenedNovel = novelToLoad.Name;
-        _dataPersister.Save();
+        await _dataPersister.Save();
     }
 }

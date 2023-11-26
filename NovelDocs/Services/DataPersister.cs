@@ -1,39 +1,123 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Windows.Markup;
+using System.Threading.Tasks;
+using System.Timers;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using NovelDocs.Entity;
+using NovelDocs.Managers;
 
 namespace NovelDocs.Services;
 
 public interface IDataPersister {
-    public void Save();
+    Novel? CurrentNovel { get; }
+    Task AddNovel(IGoogleDirectory googleDirectory);
+    public Task Save();
     public Data Data { get; }
-}
-
-public static class DataPersisterExtensions {
-    public static Novel? GetLastOpenedNovel(this IDataPersister dataPersister) {
-        return dataPersister.Data.Novels.FirstOrDefault(x => x.Name == dataPersister.Data.LastOpenedNovel);
-    }
+    Task<bool> OpenNovel(NovelData? novelData = null);
+    void CloseNovel();
 }
 
 internal sealed class DataPersister : IDataPersister {
+    private readonly IGoogleDocService _googleDocService;
+    private readonly IServiceProvider _serviceProvider;
     private const string FileName = "data.nd";
     private Data? _data;
+    private OpenedNovel? _currentlyOpenedNovel;
 
-    public void Save() {
+    public DataPersister(IGoogleDocService googleDocService, IServiceProvider serviceProvider) {
+        _googleDocService = googleDocService;
+        _serviceProvider = serviceProvider;
+    }
+
+    public Novel? CurrentNovel => _currentlyOpenedNovel?.Novel;
+
+    public async Task AddNovel(IGoogleDirectory googleDirectory) {
+        var novel = new Novel {
+            Name = googleDirectory.Name,
+            GoogleDriveFolder = googleDirectory.Id,
+        };
+
+        var documentId = await _googleDocService.GetFileId("NovelDocs.dat", googleDirectory.Id);
+        if (documentId == null) {
+            documentId = await _googleDocService.CreateFile("NovelDocs.dat", googleDirectory.Id, JsonConvert.SerializeObject(novel));
+        } else {
+            var json = await _googleDocService.GetFileContents(documentId);
+            novel = JsonConvert.DeserializeObject<Novel>(json) ?? novel;
+        }
+
+        var novelData = new NovelData {
+            Name = googleDirectory.Name,
+            GoogleId = documentId
+        };
+
+        Data.Novels.Add(novelData);
+
+        await Save();
+
+        _currentlyOpenedNovel = new OpenedNovel(novelData, novel);
+        Data.LastOpenedNovel = novel.Name;
+    }
+
+    private readonly Timer _saveTimer = new(1000);
+
+    public async Task Save() {
         if (_data == null) {
             return;
         }
 
-        var currentNovel = _data.Novels.FirstOrDefault(x => x.Name == _data.LastOpenedNovel);
-        if (currentNovel != null) {
-            currentNovel.LastModified = DateTime.Now;
+        if (_currentlyOpenedNovel != null) {
+            _currentlyOpenedNovel.NovelData.Name = _currentlyOpenedNovel.Novel.Name;
+            _currentlyOpenedNovel.NovelData.LastModified = DateTime.Now;
+            Data.LastOpenedNovel = _currentlyOpenedNovel.NovelData.Name;
+
+            //for wait a second to send all updates at once.
+            if (_saveTimer.Enabled) {
+                _saveTimer.Stop();
+            } else {
+                _saveTimer.Elapsed += SaveNovel;
+            }
+
+            _saveTimer.Start();
         }
 
         var json = JsonConvert.SerializeObject(_data);
-        File.WriteAllText(FileName, json);
+        await File.WriteAllTextAsync(FileName, json);
+    }
+
+    private async void SaveNovel(object? sender, ElapsedEventArgs e) {
+        _saveTimer.Elapsed -= SaveNovel;
+        _saveTimer.Stop();
+
+        if (_currentlyOpenedNovel == null) {
+            return;
+        }
+
+        await _googleDocService.UpdateFile(_currentlyOpenedNovel.NovelData.GoogleId, JsonConvert.SerializeObject(_currentlyOpenedNovel.Novel));
+    }
+
+    public async Task<bool> OpenNovel(NovelData? novelData = null) {
+        if (novelData == null) {
+            novelData = Data.Novels.FirstOrDefault(x => x.Name == Data.LastOpenedNovel);
+            if (novelData == null) {
+                return false;
+            }
+        }
+
+        var json = await _googleDocService.GetFileContents(novelData.GoogleId);
+        var novel = JsonConvert.DeserializeObject<Novel>(json);
+        if (novel == null) {
+            return false;
+        }
+
+        _currentlyOpenedNovel = new OpenedNovel(novelData, novel);
+        Data.LastOpenedNovel = novel.Name;
+        return true;
+    }
+
+    public void CloseNovel() {
+        _currentlyOpenedNovel = null;
     }
 
     public Data Data {
@@ -47,5 +131,15 @@ internal sealed class DataPersister : IDataPersister {
 
         var fileText = File.ReadAllText(FileName);
         return JsonConvert.DeserializeObject<Data>(fileText) ?? new Data();
+    }
+
+    private class OpenedNovel {
+        public OpenedNovel(NovelData novelData, Novel novel) {
+            NovelData = novelData;
+            Novel = novel;
+        }
+
+        public NovelData NovelData { get; }
+        public Novel Novel { get; }
     }
 }

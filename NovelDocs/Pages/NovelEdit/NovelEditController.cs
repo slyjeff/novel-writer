@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Windows;
-using Microsoft.Office.Interop.Word;
 using Microsoft.Win32;
 using NovelDocs.Entity;
 using NovelDocs.Extensions;
@@ -24,7 +23,6 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     private readonly IGoogleDocManager _googleDocManager;
     private readonly IMsWordManager _msWordManager;
     private Action _novelClosed = null!; //will never be null because initialize will always be called
-    private Novel _novel = null!; //will never be null because initialize will always be called
 
     public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister, IGoogleDocController googleDocController, IGoogleDocManager googleDocManager, IMsWordManager msWordManager) {
         _serviceProvider = serviceProvider;
@@ -37,71 +35,77 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         View.OnMoveNovelTreeItem += MoveNovelTreeItem;
     }
 
-    public void Initialize(Action novelClosed, Novel novelToLoad) {
-        _novelClosed = novelClosed;
-        _novel = novelToLoad;
+    private Novel Novel {
+        get {
+            if (_dataPersister.CurrentNovel == null) {
+                throw new Exception("Attempting to access novel before it has been opened.");
+            }
 
-        _dataPersister.Data.LastOpenedNovel = novelToLoad.Name;
-        _dataPersister.Save();
+            return _dataPersister.CurrentNovel;
+        }
+    }
+
+    public void Initialize(Action novelClosed) {
+        _novelClosed = novelClosed;
 
         ViewModel.Manuscript.Selected += ManuscriptSelected;
         ViewModel.Characters.Selected += CharactersSelected;
 
-        foreach (var element in _novel.ManuscriptElements) {
+        foreach (var element in Novel.ManuscriptElements) {
             var treeItem = new ManuscriptElementTreeItem(element, ViewModel, ManuscriptElementSelected);
             ViewModel.Manuscript.ManuscriptElements.Add(treeItem);
         }
 
         ViewModel.Manuscript.IsSelected = true;
 
-        foreach (var character in _novel.Characters) {
+        foreach (var character in Novel.Characters) {
             var treeItem = new CharacterTreeItem(character, CharacterSelected);
             ViewModel.Characters.Characters.Add(treeItem);
         }
     }
 
-    private void MoveNovelTreeItem(NovelTreeItem itemToMove, MoveType moveType, NovelTreeItem destinationItem) {
+    private async void MoveNovelTreeItem(NovelTreeItem itemToMove, MoveType moveType, NovelTreeItem destinationItem) {
         switch (itemToMove) {
             case CharacterTreeItem characterToMove:
-                MoveCharacter(characterToMove, destinationItem as CharacterTreeItem);
+                await MoveCharacter(characterToMove, destinationItem as CharacterTreeItem);
                 break;
             case ManuscriptElementTreeItem manuscriptItemToMove:
-                MoveManuscriptElement(manuscriptItemToMove, moveType, destinationItem as ManuscriptElementTreeItem);
+                await MoveManuscriptElement(manuscriptItemToMove, moveType, destinationItem as ManuscriptElementTreeItem);
                 break;
         }
     }
 
-    private void MoveCharacter(CharacterTreeItem treeItemToMove, CharacterTreeItem? destinationTreeItem) {
+    private async Task MoveCharacter(CharacterTreeItem treeItemToMove, CharacterTreeItem? destinationTreeItem) {
         if (destinationTreeItem == null) {
             return;
         }
 
-        _novel.Characters.Move(treeItemToMove.Character, destinationTreeItem.Character);
+        Novel.Characters.Move(treeItemToMove.Character, destinationTreeItem.Character);
         ViewModel.Characters.Characters.Move(treeItemToMove, destinationTreeItem);
 
-        _dataPersister.Save();
+        await _dataPersister.Save();
 
         treeItemToMove.IsSelected = true;
     }
 
-    private void MoveManuscriptElement(ManuscriptElementTreeItem treeItemToMove, MoveType moveDestination, ManuscriptElementTreeItem? destinationTreeItem) {
+    private async Task MoveManuscriptElement(ManuscriptElementTreeItem treeItemToMove, MoveType moveDestination, ManuscriptElementTreeItem? destinationTreeItem) {
         if (destinationTreeItem == null) {
-            MoveManuscriptElementToRoot(treeItemToMove);
+            await MoveManuscriptElementToRoot(treeItemToMove);
         } else if (moveDestination == MoveType.Into) {
-            MoveManuscriptElementIntoSection(treeItemToMove, destinationTreeItem);
+            await MoveManuscriptElementIntoSection(treeItemToMove, destinationTreeItem);
         } else {
-            MoveManuscriptElementBeforeAnotherManuscriptElement(treeItemToMove, destinationTreeItem);
+            await MoveManuscriptElementBeforeAnotherManuscriptElement(treeItemToMove, destinationTreeItem);
         }
     }
 
-    private void MoveManuscriptElementBeforeAnotherManuscriptElement(ManuscriptElementTreeItem treeItemToMove, ManuscriptElementTreeItem destinationTreeItem) {
-        var destinationParentList = _novel.ManuscriptElements.FindParentManuscriptElementList(destinationTreeItem.ManuscriptElement);
+    private async Task MoveManuscriptElementBeforeAnotherManuscriptElement(ManuscriptElementTreeItem treeItemToMove, ManuscriptElementTreeItem destinationTreeItem) {
+        var destinationParentList = Novel.ManuscriptElements.FindParentManuscriptElementList(destinationTreeItem.ManuscriptElement);
         if (destinationParentList == null) {
             return;
         }
 
         //first move the item to the new list, then move it to before the existing item
-        _novel.ManuscriptElements.MoveManuscriptElementToList(treeItemToMove.ManuscriptElement, destinationParentList);
+        Novel.ManuscriptElements.MoveManuscriptElementToList(treeItemToMove.ManuscriptElement, destinationParentList);
         destinationParentList.Move(treeItemToMove.ManuscriptElement, destinationTreeItem.ManuscriptElement);
 
         var treeItemDestinationParentList = destinationTreeItem.Parent?.ManuscriptElements ?? ViewModel.Manuscript.ManuscriptElements;
@@ -110,7 +114,7 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
 
         treeItemToMove.Parent = destinationTreeItem.Parent;
 
-        _dataPersister.Save();
+        await _dataPersister.Save();
 
         treeItemToMove.IsSelected = true;
         if (treeItemToMove.Parent != null) {
@@ -119,25 +123,25 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     }
 
 
-    private void MoveManuscriptElementToRoot(ManuscriptElementTreeItem treeItemToMove) {
+    private async Task MoveManuscriptElementToRoot(ManuscriptElementTreeItem treeItemToMove) {
         //this item can't be at the root already
         if (treeItemToMove.Parent == null) {
             return;
         }
 
-        _novel.ManuscriptElements.MoveManuscriptElementToList(treeItemToMove.ManuscriptElement, _novel.ManuscriptElements);
+        Novel.ManuscriptElements.MoveManuscriptElementToList(treeItemToMove.ManuscriptElement, Novel.ManuscriptElements);
 
         treeItemToMove.Parent.ManuscriptElements.Remove(treeItemToMove);
         ViewModel.Manuscript.ManuscriptElements.Add(treeItemToMove);
         treeItemToMove.Parent = null;
 
-        _dataPersister.Save();
+        await _dataPersister.Save();
 
         treeItemToMove.IsSelected = true;
     }
 
-    private void MoveManuscriptElementIntoSection(ManuscriptElementTreeItem treeItemToMove, ManuscriptElementTreeItem destinationTreeItem) {
-        _novel.ManuscriptElements.MoveManuscriptElementToList(treeItemToMove.ManuscriptElement, destinationTreeItem.ManuscriptElement.ManuscriptElements);
+    private async Task MoveManuscriptElementIntoSection(ManuscriptElementTreeItem treeItemToMove, ManuscriptElementTreeItem destinationTreeItem) {
+        Novel.ManuscriptElements.MoveManuscriptElementToList(treeItemToMove.ManuscriptElement, destinationTreeItem.ManuscriptElement.ManuscriptElements);
 
         var treeItemParentList = treeItemToMove.Parent?.ManuscriptElements ?? ViewModel.Manuscript.ManuscriptElements;
         treeItemParentList.Remove(treeItemToMove);
@@ -145,15 +149,15 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         destinationTreeItem.ManuscriptElements.Add(treeItemToMove);
         treeItemToMove.Parent = destinationTreeItem;
 
-        _dataPersister.Save();
+        await _dataPersister.Save();
 
         treeItemToMove.IsSelected = true;
         destinationTreeItem.IsExpanded = true;
     }
 
-    private void ManuscriptSelected() {
+    private async void ManuscriptSelected() {
         var novelDetailsController = _serviceProvider.CreateInstance<NovelDetailsController>();
-        novelDetailsController.Initialize(_novel);
+        await novelDetailsController.Initialize(Novel);
         ViewModel.EditDataView = novelDetailsController.View;
     }
 
@@ -180,19 +184,19 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         ViewModel.EditDataView = characterDetailsController.View;
     }
 
-    private void AddManuscriptElement(ManuscriptElementTreeItem? parent, ManuscriptElement newManuscriptElement) {
+    private async Task AddManuscriptElement(ManuscriptElementTreeItem? parent, ManuscriptElement newManuscriptElement) {
         var newTreeItem = new ManuscriptElementTreeItem(newManuscriptElement, ViewModel, ManuscriptElementSelected) {
             Parent = parent
         };
         if (parent == null) {
-            _novel.ManuscriptElements.Add(newManuscriptElement);
+            Novel.ManuscriptElements.Add(newManuscriptElement);
             ViewModel.Manuscript.ManuscriptElements.Add(newTreeItem);
         } else {
             parent.ManuscriptElement.ManuscriptElements.Add(newManuscriptElement);
             parent.ManuscriptElements.Add(newTreeItem);
         }
 
-        _dataPersister.Save();
+        await _dataPersister.Save();
 
         newTreeItem.IsSelected = true;
     }
@@ -233,13 +237,13 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
 
     [Command]
     public async Task CompileNovel() {
-        if (MessageBox.Show($"Compile Novel {_novel.Name}?", "Confirmation", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
+        if (MessageBox.Show($"Compile Novel {Novel.Name}?", "Confirmation", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
             return;
         }
 
         await _googleDocManager.Compile();
 
-        var address = $"https://docs.google.com/document/d/{_novel.ManuscriptId}";
+        var address = $"https://docs.google.com/document/d/{Novel.ManuscriptId}";
         Process.Start(GetSystemDefaultBrowser(), address);
     }
 
@@ -252,37 +256,37 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     }
 
     [Command]
-    public void CloseNovel() {
-        _dataPersister.Data.LastOpenedNovel = string.Empty;
-        _dataPersister.Save();
+    public async Task CloseNovel() {
+        await _dataPersister.Save();
+        _dataPersister.CloseNovel();
         _novelClosed.Invoke();
     }
 
     [Command]
-    public void AddSection(ManuscriptElementTreeItem? parent) {
+    public async Task AddSection(ManuscriptElementTreeItem? parent) {
         var section = new ManuscriptElement {
             Name = "New Section",
             Type = ManuscriptElementType.Section,
             IsChapter = true
         };
 
-        AddManuscriptElement(parent, section);
+        await AddManuscriptElement(parent, section);
     }
 
     [Command]
-    public void AddScene(ManuscriptElementTreeItem? parent) {
+    public async Task AddScene(ManuscriptElementTreeItem? parent) {
         var scene = new ManuscriptElement {
             Name = "New Scene",
             Type = ManuscriptElementType.Scene
         };
 
-        AddManuscriptElement(parent, scene);
+        await AddManuscriptElement(parent, scene);
     }
 
     [Command]
-    public void DeleteManuscriptElement(ManuscriptElementTreeItem itemToDelete) {
+    public async Task DeleteManuscriptElement(ManuscriptElementTreeItem itemToDelete) {
         if (itemToDelete.Parent == null) {
-            _novel.ManuscriptElements.Remove(itemToDelete.ManuscriptElement);
+            Novel.ManuscriptElements.Remove(itemToDelete.ManuscriptElement);
             ViewModel.Manuscript.ManuscriptElements.Remove(itemToDelete);
         } else {
             var parent = itemToDelete.Parent;
@@ -290,16 +294,16 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
             parent.ManuscriptElements.Remove(itemToDelete);
         }
 
-        _dataPersister.Save();
+        await _dataPersister.Save();
     }
 
     [Command]
-    public void AddCharacter() {
+    public async Task AddCharacter() {
         var character = new Character {
             Name = "New Character",
         };
-        _novel.Characters.Add(character);
-        _dataPersister.Save();
+        Novel.Characters.Add(character);
+        await _dataPersister.Save();
 
         var treeItem = new CharacterTreeItem(character, CharacterSelected);
         ViewModel.Characters.Characters.Add(treeItem);

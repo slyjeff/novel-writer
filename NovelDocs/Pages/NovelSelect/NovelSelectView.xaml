@@ -27,7 +27,7 @@
             <DataTemplate>
                 <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                 <Button Command="{Binding DataContext.ActionSelected, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                        CommandParameter="{Binding Novel}">
+                        CommandParameter="{Binding NovelData}">
                     <DockPanel HorizontalAlignment="Stretch"
                                VerticalAlignment="Stretch">
                         <Image Width="150" DockPanel.Dock="Top">

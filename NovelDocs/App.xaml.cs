@@ -33,8 +33,9 @@ public partial class App {
             .AddTransient<ICompileStatusService, CompileStatusService>();
     }
 
-    private void App_OnStartup(object sender, StartupEventArgs e) {
+    private async void App_OnStartup(object sender, StartupEventArgs e) {
         var mainController = _serviceProvider.CreateInstance<MainController>();
+        await mainController.Initialize();
         mainController.View.Show();
     }
 }

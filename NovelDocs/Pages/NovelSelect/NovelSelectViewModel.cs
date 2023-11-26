@@ -8,8 +8,8 @@ namespace NovelDocs.Pages.NovelSelect {
     }
 
     public sealed class NovelSelectAction {
-        public NovelSelectAction(Novel? novel) {
-            Novel = novel;
+        public NovelSelectAction(NovelData? novel) {
+            NovelData = novel;
             if (novel == null) {
                 Action = "New Novel";
                 ImageUriSource = "/images/EmptyDocument.png";
@@ -21,7 +21,7 @@ namespace NovelDocs.Pages.NovelSelect {
             }
         }
 
-        public Novel? Novel { get; }
+        public NovelData? NovelData { get; }
 
         public string Action { get; }
         public string ImageUriSource { get; }
