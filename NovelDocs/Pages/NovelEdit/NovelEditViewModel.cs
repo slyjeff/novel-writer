@@ -15,15 +15,19 @@ public abstract class NovelEditViewModel : ViewModel {
         Characters.ViewModel = this;
     }
 
-    public virtual GoogleDocView GoogleDocView { get; set; } = null!; //set in initializer of controller
+    public virtual object? ContentView { get; set; } = null;
 
-    public virtual object EditDataView { get; set; } = null!; //set in initialize of controller
+    public virtual object? EditDataView { get; set; } = null;
     public ManuscriptTreeItem Manuscript => (ManuscriptTreeItem)TreeItems[0];
-    public CharactersTreeItem Characters => (CharactersTreeItem)TreeItems[1];
+
+    public EventBoardTreeItem EventBoard => (EventBoardTreeItem)TreeItems[1];
+
+    public CharactersTreeItem Characters => (CharactersTreeItem)TreeItems[2];
 
     public IList<object> TreeItems { get; } = new List<object> {
-        new ManuscriptTreeItem { IsExpanded = true },
-        new CharactersTreeItem{ IsExpanded = true },
+        new ManuscriptTreeItem { IsExpanded = false },
+        new EventBoardTreeItem(),
+        new CharactersTreeItem{ IsExpanded = false },
     };
 }
 
@@ -82,6 +86,11 @@ public sealed class ManuscriptTreeItem : NovelTreeItem {
 
     public IList<ManuscriptElementTreeItem> ManuscriptElements { get; } = new ObservableCollection<ManuscriptElementTreeItem>();
 }
+
+public sealed class EventBoardTreeItem : NovelTreeItem {
+    public override string Name => "Event Board";
+}
+
 
 public sealed class CharactersTreeItem : NovelTreeItem {
     public override string Name => "Characters";

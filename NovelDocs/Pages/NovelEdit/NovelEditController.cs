@@ -7,6 +7,7 @@ using NovelDocs.Extensions;
 using NovelDocs.Managers;
 using NovelDocs.PageControls;
 using NovelDocs.Pages.CharacterDetails;
+using NovelDocs.Pages.EventBoard;
 using NovelDocs.Pages.GoogleDoc;
 using NovelDocs.Pages.NovelDetails;
 using NovelDocs.Pages.SceneDetails;
@@ -20,6 +21,7 @@ namespace NovelDocs.Pages.NovelEdit;
 internal sealed class NovelEditController : Controller<NovelEditView, NovelEditViewModel> {
     private readonly IServiceProvider _serviceProvider;
     private readonly IDataPersister _dataPersister;
+    private readonly IGoogleDocController _googleDocController;
     private readonly IGoogleDocManager _googleDocManager;
     private readonly IMsWordManager _msWordManager;
     private Action _novelClosed = null!; //will never be null because initialize will always be called
@@ -27,10 +29,9 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister, IGoogleDocController googleDocController, IGoogleDocManager googleDocManager, IMsWordManager msWordManager) {
         _serviceProvider = serviceProvider;
         _dataPersister = dataPersister;
+        _googleDocController = googleDocController;
         _googleDocManager = googleDocManager;
         _msWordManager = msWordManager;
-
-        ViewModel.GoogleDocView = googleDocController.View;
 
         View.OnMoveNovelTreeItem += MoveNovelTreeItem;
     }
@@ -49,6 +50,7 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         _novelClosed = novelClosed;
 
         ViewModel.Manuscript.Selected += ManuscriptSelected;
+        ViewModel.EventBoard.Selected += EventBoardSelected;
         ViewModel.Characters.Selected += CharactersSelected;
 
         foreach (var element in Novel.ManuscriptElements) {
@@ -159,6 +161,14 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         var novelDetailsController = _serviceProvider.CreateInstance<NovelDetailsController>();
         await novelDetailsController.Initialize(Novel);
         ViewModel.EditDataView = novelDetailsController.View;
+        ViewModel.ContentView = null;
+    }
+
+    private void EventBoardSelected() {
+        var eventBoardController = _serviceProvider.CreateInstance<EventBoardController>();
+        eventBoardController.Initialize();
+        ViewModel.EditDataView = null;
+        ViewModel.ContentView = eventBoardController.View;
     }
 
     private async void ManuscriptElementSelected(ManuscriptElementTreeItem treeItem) {
@@ -166,28 +176,33 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
             var novelDetailsController = _serviceProvider.CreateInstance<SectionDetailsController>();
             novelDetailsController.Initialize(treeItem);
             ViewModel.EditDataView = novelDetailsController.View;
+            ViewModel.ContentView = null;
             return;
         }
 
         var sceneDetailsController = _serviceProvider.CreateInstance<SceneDetailsController>();
         await sceneDetailsController.Initialize(treeItem);
         ViewModel.EditDataView = sceneDetailsController.View;
+        ViewModel.ContentView = _googleDocController.View;
     }
 
     private void CharactersSelected() {
-        ViewModel.EditDataView = null!;
+        ViewModel.ContentView = null;
+        ViewModel.EditDataView = null;
     }
 
     private async void CharacterSelected(CharacterTreeItem treeItem) {
         var characterDetailsController = _serviceProvider.CreateInstance<CharacterDetailsController>();
         await characterDetailsController.Initialize(treeItem);
         ViewModel.EditDataView = characterDetailsController.View;
+        ViewModel.ContentView = _googleDocController.View;
     }
 
     private async Task AddManuscriptElement(ManuscriptElementTreeItem? parent, ManuscriptElement newManuscriptElement) {
         var newTreeItem = new ManuscriptElementTreeItem(newManuscriptElement, ViewModel, ManuscriptElementSelected) {
             Parent = parent
         };
+
         if (parent == null) {
             Novel.ManuscriptElements.Add(newManuscriptElement);
             ViewModel.Manuscript.ManuscriptElements.Add(newTreeItem);
