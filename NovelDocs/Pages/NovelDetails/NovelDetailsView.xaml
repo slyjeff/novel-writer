@@ -15,7 +15,6 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0"
@@ -37,14 +36,6 @@
             <TextBlock Text="Copyright:"/>
             <TextBox HorizontalAlignment="Stretch"
                      Text="{Binding CopyrightYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-        </StackPanel>
-
-        <StackPanel Grid.Row="3"
-                    Orientation="Vertical">
-            <TextBlock HorizontalAlignment="Left"
-                       Text="Google Drive Folder:"/>
-            <TextBox HorizontalAlignment="Stretch"
-                     Text="{Binding GoogleDriveFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
     </Grid>
 </UserControl>
