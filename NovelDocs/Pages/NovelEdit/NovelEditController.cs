@@ -36,15 +36,7 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         View.OnMoveNovelTreeItem += MoveNovelTreeItem;
     }
 
-    private Novel Novel {
-        get {
-            if (_dataPersister.CurrentNovel == null) {
-                throw new Exception("Attempting to access novel before it has been opened.");
-            }
-
-            return _dataPersister.CurrentNovel;
-        }
-    }
+    private Novel Novel { get { return _dataPersister.CurrentNovel; } }
 
     public void Initialize(Action novelClosed) {
         _novelClosed = novelClosed;
@@ -166,9 +158,13 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
 
     private void EventBoardSelected() {
         var eventBoardController = _serviceProvider.CreateInstance<EventBoardController>();
-        eventBoardController.Initialize();
+        eventBoardController.Initialize(ShowEditDataView);
         ViewModel.EditDataView = null;
         ViewModel.ContentView = eventBoardController.View;
+    }
+
+    private void ShowEditDataView(object? view) {
+        ViewModel.EditDataView = view;
     }
 
     private async void ManuscriptElementSelected(ManuscriptElementTreeItem treeItem) {

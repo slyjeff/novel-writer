@@ -20,6 +20,8 @@ public sealed class Novel {
 
     public IList<Character> Characters = new List<Character>();
 
+    public IList<Event> Events = new List<Event>();
+
     public string GetFolder(GoogleDocType googleDocType) {
         return googleDocType switch {
             GoogleDocType.Scene => ScenesFolder,

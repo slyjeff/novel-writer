@@ -9,7 +9,7 @@ using NovelDocs.Entity;
 namespace NovelDocs.Services;
 
 public interface IDataPersister {
-    Novel? CurrentNovel { get; }
+    Novel CurrentNovel { get; }
     Task AddNovel(IGoogleDirectory googleDirectory);
     public Task Save();
     public Data Data { get; }
@@ -27,7 +27,7 @@ internal sealed class DataPersister : IDataPersister {
         _googleDocService = googleDocService;
     }
 
-    public Novel? CurrentNovel => _currentlyOpenedNovel?.Novel;
+    public Novel CurrentNovel => _currentlyOpenedNovel?.Novel ?? throw new Exception("Attempted to access novel when there is not open novel.");
 
     public async Task AddNovel(IGoogleDirectory googleDirectory) {
         var novel = new Novel {

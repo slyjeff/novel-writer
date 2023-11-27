@@ -26,9 +26,6 @@ internal sealed class SceneDetailsController : Controller<SceneDetailsView, Scen
         };
 
         var novel = dataPersister.CurrentNovel;
-        if (novel == null) {
-            return;
-        }
 
         foreach (var character in novel.Characters) {
             ViewModel.AvailableCharacters.Add(character);
