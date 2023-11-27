@@ -1,6 +1,8 @@
 ﻿using CefSharp.DevTools.DOM;
+using NovelDocs.PageControls;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NovelDocs.Entity; 
 
@@ -15,12 +17,14 @@ public sealed class Novel {
     public DateTime LastModified { get; set; } = DateTime.Now;
     public string ManuscriptId { get; set; } = string.Empty;
     public Typesetting Typesetting { get; set; } = new Typesetting();
+    
+    public IList<ManuscriptElement> ManuscriptElements { get; set; } = new List<ManuscriptElement>();
 
-    public IList<ManuscriptElement> ManuscriptElements = new List<ManuscriptElement>();
+    public IList<Character> Characters { get; set; } = new List<Character>();
 
-    public IList<Character> Characters = new List<Character>();
+    public IList<Event> Events { get; set; } = new List<Event>();
 
-    public IList<Event> Events = new List<Event>();
+    public IList<EventBoardCharacter> EventBoardCharacters { get; set; } = new List<EventBoardCharacter>();
 
     public string GetFolder(GoogleDocType googleDocType) {
         return googleDocType switch {
@@ -45,6 +49,10 @@ public sealed class Novel {
             default:
                 throw new ArgumentOutOfRangeException(nameof(googleDocType), googleDocType, null);
         }
+    }
+
+    public Character? FindCharacterById(Guid id) {
+        return Characters.FirstOrDefault(x => x.Id == id);
     }
 }
 

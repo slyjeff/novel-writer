@@ -29,7 +29,7 @@
                 </StackPanel>
             </Button>
 
-                    <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+            <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
             <Button FontSize="14"
                     Margin="5"
                     Width="140"
@@ -55,18 +55,37 @@
 
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Border Margin="0, 5, 0, 0"
+                    <Border Margin="0, 5, 10, 0"
                             CornerRadius="5"
                             HorizontalAlignment="Left"
-                            Width="150"
-                            Height="50"
+                            Width="200"
+                            Height="60"
                             Background="DarkSlateBlue">
-                        <TextBlock HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"
-                                   FontSize="16"
-                                   FontWeight="Bold"
-                                   Foreground="White"
-                                   Text="{Binding}"/>
+                        <Grid>
+                            <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                            <Button Margin="2"
+                                    Command="{Binding DataContext.DeleteCharacter, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    ToolTip="Delete Character"
+                                    Visibility="{Binding IsCharacter, Converter={StaticResource IsVisible}}">
+                                <Image Margin="5"
+                                       Source="/Images/Delete.png"/>
+                            </Button>
+                            <StackPanel Orientation="Horizontal" 
+                                        HorizontalAlignment="Left"
+                                        Margin="5, 0, 0, 0">
+                                <Image Source="{Binding ImageUriSource}" Height ="50" Margin="2" />
+                                <TextBlock HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Margin="5,0,0,0"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Foreground="White"
+                                           Text="{Binding Title}"/>
+                            </StackPanel>
+                        </Grid>
                     </Border>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -74,19 +93,20 @@
 
         <ScrollViewer Grid.Row="2"
                       Margin="10, 0, 0, 10"
-                      HorizontalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Hidden"
                       VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Events}">
+            <StackPanel Orientation="Horizontal">
+                <ItemsControl ItemsSource="{Binding Events}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Width ="150"
+                        <Border Width ="200"
                                 Margin="0, 5,0,0"
                                 CornerRadius="5"
                                 HorizontalAlignment="Left"
                                 BorderBrush="DarkSlateBlue"
                                 BorderThickness="{Binding BorderThickness}"
                                 MinHeight="100"
-                                MouseLeftButtonUp="UIElement_OnMouseLeftButtonUp">
+                                MouseLeftButtonUp="Border_OnMouseLeftButtonUp">
                             <Border.Style>
                                 <Style TargetType="{x:Type Border}">
                                     <Style.Triggers>
@@ -124,6 +144,51 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+                <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Hidden">
+                    <ItemsControl Margin="10, 0, 0, 5"
+                                  ItemsSource="{Binding CharacterEventDetails}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ItemsControl ItemsSource="{Binding EventDetails}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="0, 5, 10, 0"
+                                                CornerRadius="5"
+                                                HorizontalAlignment="Left"
+                                                Width="200"
+                                                Height="100"
+                                                BorderThickness="{Binding BorderThickness}"
+                                                BorderBrush="DarkSlateBlue"
+                                                MouseLeftButtonUp="Border_OnMouseLeftButtonUp">
+                                                <Border.Style>
+                                                    <Style TargetType="{x:Type Border}">
+                                                        <Style.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background" Value="BlueViolet" />
+                                                            </Trigger>
+                                                            <Trigger Property="IsMouseOver" Value="False">
+                                                                <Setter Property="Background" Value="{Binding Background}" />
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                </ScrollViewer>
+            </StackPanel>
         </ScrollViewer>
     </Grid>
 </UserControl>

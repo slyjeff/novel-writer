@@ -8,7 +8,7 @@
              Background="#373737" d:DataContext="{d:DesignInstance eventDetails:EventDetailsViewModel}">
     <UserControl.Resources>
         <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource EditPanelTextBlock}" />
-        <Style TargetType="{x:Type TextBox}"  BasedOn="{StaticResource EditPanelTextBox}" />
+        <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource EditPanelTextBox}" />
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>

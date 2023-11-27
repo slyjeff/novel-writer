@@ -7,12 +7,12 @@ namespace NovelDocs.Pages.EventBoard {
             InitializeComponent();
         }
 
-        private void UIElement_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e) {
+        private void Border_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e) {
             if (sender is not Border border) {
                 return;
             }
 
-            if (border.DataContext is not EventViewModel viewModel) {
+            if (border.DataContext is not SelectableViewModel viewModel) {
                 return;
             }
 
