@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace NovelDocs.Pages.EventBoard {
@@ -17,6 +18,14 @@ namespace NovelDocs.Pages.EventBoard {
             }
 
             viewModel.IsSelected = !viewModel.IsSelected;
+        }
+
+        private void ScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e) {
+            HorizontalScrollViewer.Width = PlotBoardScrollViewer.ActualWidth - (PlotBoardScrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible ? 18 : 0);
+            VerticalScrollViewer.Height = PlotBoardScrollViewer.ActualHeight - (PlotBoardScrollViewer.ComputedHorizontalScrollBarVisibility == Visibility.Visible ? 18 : 0);
+
+            HorizontalScrollViewer.ScrollToHorizontalOffset(e.HorizontalOffset);
+            VerticalScrollViewer.ScrollToVerticalOffset(e.VerticalOffset);
         }
     }
 }

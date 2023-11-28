@@ -34,7 +34,7 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
                 continue;
             }
 
-            ViewModel.Headers.Add(new HeaderViewModel(character));
+            ViewModel.CharacterHeaders.Add(character);
         }
         RefreshEventDetails();
     }
@@ -52,14 +52,13 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
     }
 
     private void RefreshEventDetails() {
-        var characterHeaders = ViewModel.Headers.Where(x => x.IsCharacter).ToList();
-        while (ViewModel.CharacterEventDetails.Count > characterHeaders.Count) {
+        while (ViewModel.CharacterEventDetails.Count > ViewModel.CharacterHeaders.Count) {
             ViewModel.CharacterEventDetails.RemoveAt(ViewModel.CharacterEventDetails.Count - 1);
         }
 
-        while (ViewModel.CharacterEventDetails.Count < characterHeaders.Count) {
-            var characterHeader = characterHeaders[ViewModel.CharacterEventDetails.Count];
-            ViewModel.CharacterEventDetails.Add(new CharacterEventDetailsViewModel(characterHeader.Character!)); //this won't be null because we know it's a character
+        while (ViewModel.CharacterEventDetails.Count < ViewModel.CharacterHeaders.Count) {
+            var character = ViewModel.CharacterHeaders[ViewModel.CharacterEventDetails.Count];
+            ViewModel.CharacterEventDetails.Add(new CharacterEventDetailsViewModel(character));
         }
 
         foreach (var characterEventDetails in ViewModel.CharacterEventDetails) {
@@ -159,7 +158,9 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
             return;
         }
 
-        ViewModel.Headers.Add(new HeaderViewModel(selectCharacterController.ViewModel.SelectedCharacter));
+        var selectedCharacter = selectCharacterController.ViewModel.SelectedCharacter;
+        ViewModel.CharacterHeaders.Add(selectedCharacter);
+        Novel.EventBoardCharacters.Add(new EventBoardCharacter { Id = selectedCharacter.Id });
 
         RefreshEventDetails();
 
@@ -167,20 +168,16 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
     }
 
     [Command]
-    public void DeleteCharacter(HeaderViewModel headerViewModel) {
-        if (headerViewModel.Character == null) {
+    public void DeleteCharacter(Character character) {
+        if (MessageBox.Show($"Remove character {character.Name}?", "Confirm", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
             return;
         }
 
-        if (MessageBox.Show($"Remove character {headerViewModel.Title}?", "Confirm", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
-            return;
-        }
-
-        var eventBoardCharacter = Novel.EventBoardCharacters.FirstOrDefault(x => x.Id == headerViewModel.Character.Id);
+        var eventBoardCharacter = Novel.EventBoardCharacters.FirstOrDefault(x => x.Id == character.Id);
         if (eventBoardCharacter == null) {
             return;
         }
-        ViewModel.Headers.Remove(headerViewModel);
+        ViewModel.CharacterHeaders.Remove(character);
         Novel.EventBoardCharacters.Remove(eventBoardCharacter);
         RefreshEventDetails();
 

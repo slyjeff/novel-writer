@@ -11,30 +11,9 @@ using NovelDocs.PageControls;
 namespace NovelDocs.Pages.EventBoard; 
 
 public abstract class EventBoardViewModel : ViewModel {
-    public virtual ObservableCollection<HeaderViewModel> Headers { get; set; } = new() {new HeaderViewModel()};
+    public virtual ObservableCollection<Character> CharacterHeaders { get; set; } = new();
     public virtual ObservableCollection<EventViewModel> Events { get; set; } = new();
     public virtual ObservableCollection<CharacterEventDetailsViewModel> CharacterEventDetails { get; set; } = new();
-}
-
-public class HeaderViewModel {
-    public HeaderViewModel() {
-        Title = "Events";
-        ImageUriSource = "/Images/Events.png";
-        IsCharacter = false;
-    }
-
-    public HeaderViewModel(Character character) {
-        Character = character;
-        Title = character.Name;
-        ImageUriSource = character.ImageUriSource;
-        IsCharacter = true;
-    }
-
-    public string Title { get; }
-    public string ImageUriSource { get; }
-    public bool IsCharacter { get; }
-
-    public Character? Character { get; }
 }
 
 public class SelectableViewModel : INotifyPropertyChanged {
