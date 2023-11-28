@@ -90,7 +90,7 @@
                             <Border Margin="10, 0, 0, 0"
                                 CornerRadius="5"
                                 HorizontalAlignment="Left"
-                                Width="200"
+                                Width="300"
                                 Height="60"
                                 Background="DarkSlateBlue">
                                 <Grid>
@@ -143,7 +143,7 @@
                                 HorizontalAlignment="Left"
                                 BorderBrush="BlueViolet"
                                 BorderThickness="{Binding BorderThickness}"
-                                MinHeight="100"
+                                Height="200"
                                 MouseLeftButtonUp="Border_OnMouseLeftButtonUp">
                             <Border.Style>
                                 <Style TargetType="{x:Type Border}">
@@ -204,8 +204,8 @@
                                         <Border Margin="10, 5, 0, 5"
                                             CornerRadius="5"
                                             HorizontalAlignment="Left"
-                                            Width="200"
-                                            Height="100"
+                                            Width="300"
+                                            Height="200"
                                             BorderThickness="{Binding BorderThickness}"
                                             BorderBrush="DarkSlateBlue"
                                             MouseLeftButtonUp="Border_OnMouseLeftButtonUp">
@@ -221,6 +221,13 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
+                                            <TextBlock HorizontalAlignment="Left"
+                                                VerticalAlignment="top"
+                                                TextWrapping="Wrap"
+                                                Margin="5"
+                                                FontSize="14"
+                                                Foreground="White"
+                                            Text="{Binding Details}"/>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>

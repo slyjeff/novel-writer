@@ -8,10 +8,10 @@ internal class EventDetailsController : Controller<EventDetailsView, EventDetail
     private EventViewModel? _eventViewModel;
 
     public EventDetailsController(IDataPersister dataPersister) {
-        ViewModel.PropertyChanged += (sender, eventArgs) => {
+        ViewModel.PropertyChanged += async (sender, eventArgs) => {
             if (eventArgs.PropertyName == nameof(ViewModel.Name)) {
                 _eventViewModel?. OnPropertyChanged(nameof(EventViewModel.Name));
-                dataPersister.Save();
+                await dataPersister.Save();
             }
         };
     }

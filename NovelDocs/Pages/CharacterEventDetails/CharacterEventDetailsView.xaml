@@ -15,6 +15,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
@@ -29,6 +30,18 @@
                    HorizontalAlignment="Left"
                    Width="330"
                    Source="{Binding Character.ImageUriSource}"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Vertical">
+            <TextBlock Text="Details:"/>
+
+            <TextBox TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalAlignment="Left"
+                     Height="400"
+                     Text="{Binding EventDetails.Details, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
     </Grid>
 </UserControl>

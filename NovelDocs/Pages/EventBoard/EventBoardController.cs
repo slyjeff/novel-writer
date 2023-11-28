@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using NovelDocs.Entity;
 using NovelDocs.Extensions;
@@ -45,33 +46,51 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
         return viewModel;
     }
 
-    private EventDetailsViewModel CreateEventDetailsViewModel(Event novelEvent) {
-        var viewModel = new EventDetailsViewModel(novelEvent);
+    private EventDetailsViewModel CreateEventDetailsViewModel(Event novelEvent, Character character) {
+        var viewModel = new EventDetailsViewModel(novelEvent, character);
         viewModel.PropertyChanged += SelectableViewModelPropertyChanged;
+        viewModel.PropertyChanged += EventDetailsViewModelPropertyChanged;
         return viewModel;
     }
 
+    private bool _refreshingEventDetails;
     private void RefreshEventDetails() {
-        while (ViewModel.CharacterEventDetails.Count > ViewModel.CharacterHeaders.Count) {
-            ViewModel.CharacterEventDetails.RemoveAt(ViewModel.CharacterEventDetails.Count - 1);
-        }
-
-        while (ViewModel.CharacterEventDetails.Count < ViewModel.CharacterHeaders.Count) {
-            var character = ViewModel.CharacterHeaders[ViewModel.CharacterEventDetails.Count];
-            ViewModel.CharacterEventDetails.Add(new CharacterEventDetailsViewModel(character));
-        }
-
-        foreach (var characterEventDetails in ViewModel.CharacterEventDetails) {
-            while (characterEventDetails.EventDetails.Count > ViewModel.Events.Count) {
-                var eventDetailsToRemove = characterEventDetails.EventDetails.Last();
-                eventDetailsToRemove.PropertyChanged -= SelectableViewModelPropertyChanged;
-                characterEventDetails.EventDetails.Remove(eventDetailsToRemove);
+        _refreshingEventDetails = true;
+        try {
+            while (ViewModel.CharacterEventDetails.Count > ViewModel.CharacterHeaders.Count) {
+                ViewModel.CharacterEventDetails.RemoveAt(ViewModel.CharacterEventDetails.Count - 1);
             }
 
-            while (characterEventDetails.EventDetails.Count < ViewModel.Events.Count) {
-                var novelEvent = ViewModel.Events[characterEventDetails.EventDetails.Count];
-                characterEventDetails.EventDetails.Add(CreateEventDetailsViewModel(novelEvent.Event));
+            while (ViewModel.CharacterEventDetails.Count < ViewModel.CharacterHeaders.Count) {
+                var character = ViewModel.CharacterHeaders[ViewModel.CharacterEventDetails.Count];
+                ViewModel.CharacterEventDetails.Add(new CharacterEventDetailsViewModel(character));
             }
+
+            foreach (var characterEventDetails in ViewModel.CharacterEventDetails) {
+                while (characterEventDetails.EventDetails.Count > ViewModel.Events.Count) {
+                    var eventDetailsToRemove = characterEventDetails.EventDetails.Last();
+                    eventDetailsToRemove.PropertyChanged -= SelectableViewModelPropertyChanged;
+                    characterEventDetails.EventDetails.Remove(eventDetailsToRemove);
+                }
+
+                while (characterEventDetails.EventDetails.Count < ViewModel.Events.Count) {
+                    var novelEvent = ViewModel.Events[characterEventDetails.EventDetails.Count].Event;
+                    var eventDetailsViewModel = CreateEventDetailsViewModel(novelEvent, characterEventDetails.Character);
+                    characterEventDetails.EventDetails.Add(eventDetailsViewModel);
+
+                    var eventBoardCharacter = Novel.EventBoardCharacters.FirstOrDefault(x => x.Id == characterEventDetails.Character.Id);
+
+                    var eventDetails = eventBoardCharacter?.EventDetails.FirstOrDefault(x => x.EventId == novelEvent.Id);
+                    if (eventDetails == null) {
+                        continue;
+                    }
+
+                    eventDetailsViewModel.Details = eventDetails.Details;
+                    eventDetailsViewModel.EventCount = eventDetails.EventCount;
+                }
+            }
+        } finally {
+            _refreshingEventDetails = false;
         }
     }
 
@@ -124,19 +143,54 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
         }
     }
 
+    private async void EventDetailsViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e) {
+        if (_refreshingEventDetails) {
+            return;
+        }
+
+        if (e.PropertyName != nameof(EventDetailsViewModel.Details) && e.PropertyName != nameof(EventDetailsViewModel.EventCount)) {
+            return;
+        }
+
+        if (sender is not EventDetailsViewModel viewModel) {
+            return;
+        }
+
+        var eventBoardCharacter = Novel.EventBoardCharacters.FirstOrDefault(x => x.Id == viewModel.Character.Id);
+        if (eventBoardCharacter == null) {
+            return;
+        }
+
+        var eventDetails = eventBoardCharacter.EventDetails.FirstOrDefault(x => x.EventId == viewModel.Event.Id);
+        if (eventDetails == null) {
+            eventDetails = new Entity.EventDetails { EventId = viewModel.Event.Id };
+            eventBoardCharacter.EventDetails.Add(eventDetails);
+        }
+
+        eventDetails.Details = viewModel.Details;
+        eventDetails.EventCount =  viewModel.EventCount;
+
+        if (eventDetails.Details == string.Empty) {
+            eventBoardCharacter.EventDetails.Remove(eventDetails);
+        }
+
+        await _dataPersister.Save();
+    }
+
+
     [Command]
-    public void AddEvent() {
+    public async Task AddEvent() {
         var newEvent = new Event();
         Novel.Events.Add(newEvent);
         ViewModel.Events.Add(CreateEventViewModel(newEvent));
         
         RefreshEventDetails();
         
-        _dataPersister.Save();
+        await _dataPersister.Save();
     }
 
     [Command]
-    public void DeleteEvent(EventViewModel novelEvent) {
+    public async Task DeleteEvent(EventViewModel novelEvent) {
         if (MessageBox.Show($"Remove event {novelEvent.Name}?", "Confirm", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
             return;
         }
@@ -145,14 +199,23 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
 
         Novel.Events.Remove(novelEvent.Event);
         ViewModel.Events.Remove(novelEvent);
+
+        foreach (var eventBoardCharacter in Novel.EventBoardCharacters) {
+            var eventDetailsToRemove = eventBoardCharacter.EventDetails.FirstOrDefault(x => x.EventId == novelEvent.Event.Id);
+            if (eventDetailsToRemove == null) {
+                continue;
+            }
+
+            eventBoardCharacter.EventDetails.Remove(eventDetailsToRemove);
+        }
         
         RefreshEventDetails();
 
-        _dataPersister.Save();
+        await _dataPersister.Save();
     }
 
     [Command]
-    public void AddCharacter() {
+    public async Task AddCharacter() {
         var selectCharacterController = _serviceProvider.CreateInstance<SelectCharacterController>();
         if (selectCharacterController.View.ShowDialog() != true || selectCharacterController.ViewModel.SelectedCharacter == null) {
             return;
@@ -164,11 +227,11 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
 
         RefreshEventDetails();
 
-        _dataPersister.Save();
+        await _dataPersister.Save();
     }
 
     [Command]
-    public void DeleteCharacter(Character character) {
+    public async Task DeleteCharacter(Character character) {
         if (MessageBox.Show($"Remove character {character.Name}?", "Confirm", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
             return;
         }
@@ -181,6 +244,6 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
         Novel.EventBoardCharacters.Remove(eventBoardCharacter);
         RefreshEventDetails();
 
-        _dataPersister.Save();
+        await _dataPersister.Save();
     }
 }

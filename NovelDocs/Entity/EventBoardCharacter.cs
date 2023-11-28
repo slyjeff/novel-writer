@@ -13,5 +13,5 @@ public sealed class EventBoardCharacter {
 public sealed class EventDetails {
     public Guid EventId { get; set; }
     public int EventCount { get; set; } = 1;
-    public IList<string> Details { get; set; } = new List<string>();
+    public string Details { get; set; } = string.Empty;
 }

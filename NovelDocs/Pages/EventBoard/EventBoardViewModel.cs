@@ -58,13 +58,34 @@ public class CharacterEventDetailsViewModel {
 }
 
 public class EventDetailsViewModel : SelectableViewModel {
-    public EventDetailsViewModel(Event novelEvent) {
+
+    public EventDetailsViewModel(Event novelEvent, Character character) {
         Event = novelEvent;
+        Character = character;
     }
 
-    public int EventCount { get; set; } = 1;
-    public IList<string> Details { get; set; } = new List<string>();
+    private int _eventCount = 1;
+    public int EventCount {
+        get => _eventCount;
+        set {
+            _eventCount = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private string _details = string.Empty;
+
+    public string Details {
+        get => _details;
+        set {
+            _details = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(Background));
+        }
+    }
+
     public SolidColorBrush Background => Details.Any() ? new SolidColorBrush(Colors.Indigo) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#373737"));
 
     public Event Event { get; }
+    public Character Character { get; }
 }
