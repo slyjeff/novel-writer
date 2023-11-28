@@ -24,6 +24,7 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
         _serviceProvider = serviceProvider;
 
         View.OnMoveCharacter += MoveCharacter;
+        View.OnMoveEvent += MoveEvent;
     }
 
     private Novel Novel => _dataPersister.CurrentNovel;
@@ -194,6 +195,31 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
 
         ViewModel.CharacterEventDetails.Remove(characterEventDetailsToMove);
         ViewModel.CharacterEventDetails.Insert(ViewModel.CharacterEventDetails.IndexOf(characterEventDetailsToMoveBefore), characterEventDetailsToMove);
+
+        _dataPersister.Save();
+    }
+
+    private void MoveEvent(EventViewModel eventToMove, EventViewModel moveBeforeEvent) {
+        Novel.Events.Remove(eventToMove.Event);
+        Novel.Events.Insert(Novel.Events.IndexOf(moveBeforeEvent.Event), eventToMove.Event);
+
+        ViewModel.Events.Remove(eventToMove);
+        ViewModel.Events.Insert(ViewModel.Events.IndexOf(moveBeforeEvent), eventToMove);
+
+        foreach (var characterEvent in ViewModel.CharacterEventDetails) {
+            var eventDetailsToMove = characterEvent.EventDetails.FirstOrDefault(x => x.Event == eventToMove.Event);
+            if (eventDetailsToMove == null) {
+                continue;
+            }
+
+            var moveBeforeEventDetails = characterEvent.EventDetails.FirstOrDefault(x => x.Event == moveBeforeEvent.Event);
+            if (moveBeforeEventDetails == null) {
+                continue;
+            }
+
+            characterEvent.EventDetails.Remove(eventDetailsToMove);
+            characterEvent.EventDetails.Insert(characterEvent.EventDetails.IndexOf(moveBeforeEventDetails), eventDetailsToMove);
+        }
 
         _dataPersister.Save();
     }

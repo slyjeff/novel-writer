@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using NovelDocs.Entity;
-using NovelDocs.Pages.NovelEdit;
 
 namespace NovelDocs.Pages.EventBoard {
     public partial class EventBoardView {
@@ -15,6 +14,7 @@ namespace NovelDocs.Pages.EventBoard {
         }
 
         public event Action<Character, Character>? OnMoveCharacter;
+        public event Action<EventViewModel, EventViewModel>? OnMoveEvent;
 
         private void Border_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e) {
             if (sender is not Border border) {
@@ -62,21 +62,29 @@ namespace NovelDocs.Pages.EventBoard {
             DragDrop.DoDragDrop(this, data, dde);
         }
 
-        private void Character_OnPreviewMouseDown(object sender, MouseButtonEventArgs e) {
+        private void OnPreviewMouseDown<T>(object sender, MouseButtonEventArgs e) {
             if (sender is not FrameworkElement frameworkElement) {
                 return;
             }
 
-            if (frameworkElement.DataContext is not Character character) {
+            if (frameworkElement.DataContext is not T itemToMove) {
                 return;
             }
 
-            _itemToMove = character;
+            _itemToMove = itemToMove;
             _dragStartPoint = e.GetPosition(null);
         }
 
-        private void Character_OnDragOver(object sender, DragEventArgs e) {
-            if (_itemToMove is not Character sourceCharacter) {
+        private void Character_OnPreviewMouseDown(object sender, MouseButtonEventArgs e) {
+            OnPreviewMouseDown<Character>(sender, e);
+        }
+
+        private void Event_OnPreviewMouseDown(object sender, MouseButtonEventArgs e) {
+            OnPreviewMouseDown<EventViewModel>(sender, e);
+        }
+
+        private void OnDragOver<T>(object sender, DragEventArgs e) where T : class {
+            if (_itemToMove is not T source) {
                 return;
             }
 
@@ -84,11 +92,11 @@ namespace NovelDocs.Pages.EventBoard {
                 return;
             }
 
-            if (frameworkElement.DataContext is not Character destinationCharacter) {
+            if (frameworkElement.DataContext is not T destination) {
                 return;
             }
 
-            if (sourceCharacter == destinationCharacter) {
+            if (source == destination) {
                 e.Effects = DragDropEffects.None;
                 e.Handled = true;
                 return;
@@ -98,9 +106,17 @@ namespace NovelDocs.Pages.EventBoard {
             e.Handled = true;
         }
 
-        private void Character_OnDrop(object sender, DragEventArgs e) {
+        private void Character_OnDragOver(object sender, DragEventArgs e) {
+            OnDragOver<Character>(sender, e);
+        }
+
+        private void Event_OnDragOver(object sender, DragEventArgs e) {
+            OnDragOver<EventViewModel>(sender, e);
+        }
+
+        private void OnDrop<T>(object sender, Action<T, T>? action) where T : class {
             try {
-                if (_itemToMove is not Character sourceCharacter) {
+                if (_itemToMove is not T source) {
                     return;
                 }
 
@@ -108,15 +124,23 @@ namespace NovelDocs.Pages.EventBoard {
                     return;
                 }
 
-                if (frameworkElement.DataContext is not Character destinationCharacter) {
+                if (frameworkElement.DataContext is not T destination) {
                     return;
                 }
 
-                OnMoveCharacter?.Invoke(sourceCharacter, destinationCharacter);
+                action?.Invoke(source, destination);
             } finally {
                 _dragStartPoint = default;
                 _itemToMove = null;
             }
+        }
+
+        private void Character_OnDrop(object sender, DragEventArgs e) {
+            OnDrop(sender, OnMoveCharacter);
+        }
+
+        private void Event_OnDrop(object sender, DragEventArgs e) {
+            OnDrop(sender, OnMoveEvent);
         }
     }
 }

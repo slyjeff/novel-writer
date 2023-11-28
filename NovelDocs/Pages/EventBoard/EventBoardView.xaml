@@ -149,7 +149,12 @@
                                 BorderBrush="BlueViolet"
                                 BorderThickness="{Binding BorderThickness}"
                                 Height="200"
-                                MouseLeftButtonUp="Border_OnMouseLeftButtonUp">
+                                MouseLeftButtonUp="Border_OnMouseLeftButtonUp"
+                                AllowDrop="True"
+                                PreviewMouseDown="Event_OnPreviewMouseDown"
+                                DragOver="Event_OnDragOver"
+                                DragEnter="Event_OnDragOver"
+                                Drop="Event_OnDrop">
                             <Border.Style>
                                 <Style TargetType="{x:Type Border}">
                                     <Style.Triggers>
