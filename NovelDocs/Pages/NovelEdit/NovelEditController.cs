@@ -36,7 +36,7 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         View.OnMoveNovelTreeItem += MoveNovelTreeItem;
     }
 
-    private Novel Novel { get { return _dataPersister.CurrentNovel; } }
+    private Novel Novel => _dataPersister.CurrentNovel;
 
     public void Initialize(Action novelClosed) {
         _novelClosed = novelClosed;
@@ -246,6 +246,14 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         }
     }
 
+    private void CloseAfterFinishedSaving() {
+        _dataPersister.OnFinishedSaving -= CloseAfterFinishedSaving;
+        View.Dispatcher.Invoke(() => {
+            _dataPersister.CloseNovel();
+            _novelClosed.Invoke();
+        });
+    }
+
     [Command]
     public async Task CompileNovel() {
         if (MessageBox.Show($"Compile Novel {Novel.Name}?", "Confirmation", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
@@ -267,8 +275,11 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     }
 
     [Command]
-    public async Task CloseNovel() {
-        await _dataPersister.Save();
+    public void CloseNovel() {
+        if (_dataPersister.IsSaving) {
+            _dataPersister.OnFinishedSaving += CloseAfterFinishedSaving;
+            return;
+        }
         _dataPersister.CloseNovel();
         _novelClosed.Invoke();
     }

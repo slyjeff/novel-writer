@@ -1,5 +1,4 @@
 ﻿using System;
-using System.CodeDom;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -19,7 +18,6 @@ public partial class NovelEditView {
 
     private Point _dragStartPoint;
     private TreeViewItem? _itemToMove;
-    private bool _isDragging;
 
     private ManuscriptElementTreeItem? _manuscriptElementToMove;
     private ManuscriptElementTreeItem? _manuscriptElementDestination;
@@ -52,29 +50,21 @@ public partial class NovelEditView {
     }
 
     private void TreeView_PreviewMouseMove(object sender, MouseEventArgs e) {
+        if (_itemToMove == null) {
+            return;
+        }
+
         if (e.LeftButton != MouseButtonState.Pressed || e.RightButton == MouseButtonState.Pressed) {
             _dragStartPoint = default;
             _itemToMove = null;
             return;
         }
 
-        if (_isDragging) {
-            return;
-        }
-
         var position = e.GetPosition(null);
-        if (Math.Abs(position.X - _dragStartPoint.X) > SystemParameters.MinimumHorizontalDragDistance ||
-            Math.Abs(position.Y - _dragStartPoint.Y) > SystemParameters.MinimumVerticalDragDistance) {
-            StartDrag(e);
-        }
-    }
-
-    private void StartDrag(MouseEventArgs e) {
-        if (_itemToMove == null) {
+        if (Math.Abs(position.X - _dragStartPoint.X) <= SystemParameters.MinimumHorizontalDragDistance ||
+            Math.Abs(position.Y - _dragStartPoint.Y) <= SystemParameters.MinimumVerticalDragDistance) {
             return;
         }
-
-        _isDragging = true;
 
         var data = new DataObject("treeViewItem", _itemToMove);
 
@@ -83,8 +73,6 @@ public partial class NovelEditView {
             dde = DragDropEffects.All;
         }
         DragDrop.DoDragDrop(TreeView, data, dde);
-
-        _isDragging = false;
     }
 
     private void TreeView_DragOver(object sender, DragEventArgs e) {

@@ -22,6 +22,8 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
     public EventBoardController(IDataPersister dataPersister, IServiceProvider serviceProvider) {
         _dataPersister = dataPersister;
         _serviceProvider = serviceProvider;
+
+        View.OnMoveCharacter += MoveCharacter;
     }
 
     private Novel Novel => _dataPersister.CurrentNovel;
@@ -177,6 +179,24 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
         await _dataPersister.Save();
     }
 
+    private void MoveCharacter(Character characterToMove, Character moveBeforeCharacter) {
+        var eventBoardCharacterToMove = Novel.EventBoardCharacters.First(x => x.Id == characterToMove.Id);
+        var eventBoardCharacterToMoveBefore = Novel.EventBoardCharacters.First(x => x.Id == moveBeforeCharacter.Id);
+
+        Novel.EventBoardCharacters.Remove(eventBoardCharacterToMove);
+        Novel.EventBoardCharacters.Insert(Novel.EventBoardCharacters.IndexOf(eventBoardCharacterToMoveBefore), eventBoardCharacterToMove);
+
+        ViewModel.CharacterHeaders.Remove(characterToMove);
+        ViewModel.CharacterHeaders.Insert(ViewModel.CharacterHeaders.IndexOf(moveBeforeCharacter), characterToMove);
+
+        var characterEventDetailsToMove = ViewModel.CharacterEventDetails.First(x => x.Character == characterToMove);
+        var characterEventDetailsToMoveBefore = ViewModel.CharacterEventDetails.First(x => x.Character == moveBeforeCharacter);
+
+        ViewModel.CharacterEventDetails.Remove(characterEventDetailsToMove);
+        ViewModel.CharacterEventDetails.Insert(ViewModel.CharacterEventDetails.IndexOf(characterEventDetailsToMoveBefore), characterEventDetailsToMove);
+
+        _dataPersister.Save();
+    }
 
     [Command]
     public async Task AddEvent() {

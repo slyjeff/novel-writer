@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:eventBoard="clr-namespace:NovelDocs.Pages.EventBoard"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance eventBoard:EventBoardViewModel}">
-    <Grid>
+    <Grid PreviewMouseMove="EventBoard_OnPreviewMouseMove">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -92,7 +92,12 @@
                                 HorizontalAlignment="Left"
                                 Width="300"
                                 Height="60"
-                                Background="DarkSlateBlue">
+                                Background="DarkSlateBlue"
+                                AllowDrop="True"
+                                PreviewMouseDown="Character_OnPreviewMouseDown"
+                                DragOver="Character_OnDragOver"
+                                DragEnter="Character_OnDragOver"
+                                Drop="Character_OnDrop">
                                 <Grid>
                                     <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                                     <Button Margin="2"

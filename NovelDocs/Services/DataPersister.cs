@@ -15,6 +15,9 @@ public interface IDataPersister {
     public Data Data { get; }
     Task<bool> OpenNovel(NovelData? novelData = null);
     void CloseNovel();
+    bool IsSaving { get; }
+
+    event Action? OnFinishedSaving;
 }
 
 internal sealed class DataPersister : IDataPersister {
@@ -56,7 +59,10 @@ internal sealed class DataPersister : IDataPersister {
         Data.LastOpenedNovel = novel.Name;
     }
 
+
     private readonly Timer _saveTimer = new(1000);
+    public bool IsSaving => _saveTimer.Enabled;
+    public event Action? OnFinishedSaving;
 
     public async Task Save() {
         if (_data == null) {
@@ -71,7 +77,8 @@ internal sealed class DataPersister : IDataPersister {
             //for wait a second to send all updates at once.
             if (_saveTimer.Enabled) {
                 _saveTimer.Stop();
-            } else {
+            }
+            else {
                 _saveTimer.Elapsed += SaveNovel;
             }
 
@@ -91,6 +98,7 @@ internal sealed class DataPersister : IDataPersister {
         }
 
         await _googleDocService.UpdateFile(_currentlyOpenedNovel.NovelData.GoogleId, JsonConvert.SerializeObject(_currentlyOpenedNovel.Novel));
+        OnFinishedSaving?.Invoke();
     }
 
     public async Task<bool> OpenNovel(NovelData? novelData = null) {
