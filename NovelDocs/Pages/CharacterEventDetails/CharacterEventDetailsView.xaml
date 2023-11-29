@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:characterEventDetails="clr-namespace:NovelDocs.Pages.CharacterEventDetails"
+             xmlns:controls="clr-namespace:NovelDocs.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance characterEventDetails:CharacterEventDetailsViewModel}">
     <UserControl.Resources>
@@ -36,12 +37,11 @@
                     Orientation="Vertical">
             <TextBlock Text="Details:"/>
 
-            <TextBox TextWrapping="Wrap"
-                     AcceptsReturn="True"
-                     VerticalScrollBarVisibility="Auto"
-                     HorizontalAlignment="Left"
-                     Height="400"
-                     Text="{Binding EventDetails.Details, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <controls:BulletListControl Height="400"
+                                        Width="330"
+                                        ReadOnly="False"
+                                        Margin="10, 0, 10, 0"
+                                        Text="{Binding EventDetails.Details, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
     </Grid>
 </UserControl>

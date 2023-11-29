@@ -25,6 +25,11 @@ public abstract class SceneDetailsViewModel : GoogleDocViewModel<ManuscriptEleme
         }
     }
 
+    public virtual string Details {
+        get => SourceData.Summary;
+        set => SourceData.Summary = value;
+    }
+
     public bool IsPointOfViewCharacterSelected => PointOfViewCharacter != AvailableCharacters.First();
 
     public IList<CharacterInSceneViewModel> CharactersInScene { get; } = new ObservableCollection<CharacterInSceneViewModel>();

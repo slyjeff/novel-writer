@@ -16,7 +16,11 @@ internal class EventDetailsController : Controller<EventDetailsView, EventDetail
         _dataPersister = dataPersister;
         ViewModel.PropertyChanged += async (_, eventArgs) => {
             if (eventArgs.PropertyName == nameof(ViewModel.Name)) {
-                _eventViewModel?. OnPropertyChanged(nameof(EventViewModel.Name));
+                _eventViewModel?.OnPropertyChanged(nameof(EventViewModel.Name));
+                await dataPersister.Save();
+            }
+
+            if (eventArgs.PropertyName == nameof(ViewModel.SceneDetails)) {
                 await dataPersister.Save();
             }
         };
@@ -42,6 +46,7 @@ internal class EventDetailsController : Controller<EventDetailsView, EventDetail
         }
 
         ViewModel.SelectedScene = scene;
+        ViewModel.CanEditSceneDetails = true;
     }
 
     [PropertyChanged]
@@ -52,9 +57,11 @@ internal class EventDetailsController : Controller<EventDetailsView, EventDetail
 
         if (ViewModel.SelectedScene == _unassignedScene) {
             ViewModel.Event.SceneId = null;
+            ViewModel.CanEditSceneDetails = false;
         } else {
             ViewModel.Event.SceneId = ViewModel.SelectedScene.Id;
             ViewModel.Name = ViewModel.SelectedScene.Name;
+            ViewModel.CanEditSceneDetails = true;
         }
 
         await _dataPersister.Save();

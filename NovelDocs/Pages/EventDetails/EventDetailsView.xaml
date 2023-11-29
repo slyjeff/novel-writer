@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:eventDetails="clr-namespace:NovelDocs.Pages.EventDetails"
+             xmlns:controls="clr-namespace:NovelDocs.Controls"
              mc:Ignorable="d" 
              Background="#373737" d:DataContext="{d:DesignInstance eventDetails:EventDetailsViewModel}">
     <UserControl.Resources>
@@ -12,6 +13,7 @@
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -45,6 +47,18 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Vertical"
+                    Visibility="{Binding CanEditSceneDetails, Converter={StaticResource IsVisible}}">
+            <TextBlock Text="Scene Details:"/>
+
+            <controls:BulletListControl Height="400"
+                                        Width="330"
+                                        ReadOnly="False"
+                                        Margin="10, 0, 10, 0"
+                                        Text="{Binding SceneDetails, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
     </Grid>
 </UserControl>

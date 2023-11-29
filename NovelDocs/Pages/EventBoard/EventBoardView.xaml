@@ -183,7 +183,8 @@
                                     <TextBlock HorizontalAlignment="Stretch"
                                            VerticalAlignment="Center"
                                            TextAlignment="Center"
-                                           FontSize="14"
+                                           FontSize="16"
+                                           FontWeight="Bold"
                                            Foreground="White"
                                            TextWrapping="Wrap"
                                            Text="{Binding Name}" />
