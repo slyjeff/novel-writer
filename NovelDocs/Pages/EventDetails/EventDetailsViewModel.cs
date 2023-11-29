@@ -1,4 +1,5 @@
-﻿using NovelDocs.Entity;
+﻿using System.Collections.Generic;
+using NovelDocs.Entity;
 using NovelDocs.PageControls;
 
 namespace NovelDocs.Pages.EventDetails; 
@@ -10,4 +11,7 @@ public abstract class EventDetailsViewModel : ViewModel {
         get => Event.Name;
         set => Event.Name = value;
     }
+
+    public virtual IList<ManuscriptElement> AvailableScenes { get; set; } = new List<ManuscriptElement>();
+    public virtual ManuscriptElement SelectedScene { get; set; } = null!; //assigned in initialize methods
 }

@@ -14,7 +14,6 @@ public sealed class Novel {
     public string ScenesFolder { get; set; } = string.Empty;
     public string ImagesFolder { get; set; } = string.Empty;
     public string CharactersFolder { get; set; } = string.Empty;
-    public DateTime LastModified { get; set; } = DateTime.Now;
     public string ManuscriptId { get; set; } = string.Empty;
     public Typesetting Typesetting { get; set; } = new Typesetting();
     
@@ -56,13 +55,17 @@ public sealed class Novel {
     }
 }
 
-public sealed class Typesetting {
-    public string TitleFont { get; set; } = string.Empty;
-    public string HeaderFont { get; set; } = string.Empty;
-    public int HeaderFontSize { get; set; } = 12;
-    public string PageNumberFont { get; set; } = string.Empty;
-    public int PageNumberFontSize { get; set; } = 12;
-    public string ChapterFont { get; set; } = string.Empty;
-    public string BodyFont { get; set; } = string.Empty;
-    public int BodyFontSize { get; set; } = 12;
+public static class NovelExtensions {
+    public static IList<ManuscriptElement> GetScenes(this IList<ManuscriptElement> manuscriptElements) {
+        var scenes = new List<ManuscriptElement>();
+        foreach (var manuscriptElement in manuscriptElements) {
+            if (manuscriptElement.Type == ManuscriptElementType.Scene) {
+                scenes.Add(manuscriptElement);
+                continue;
+            }
+            scenes.AddRange(manuscriptElement.ManuscriptElements.GetScenes());
+        }
+
+        return scenes;
+    }
 }

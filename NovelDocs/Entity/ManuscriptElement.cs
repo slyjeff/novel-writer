@@ -6,6 +6,7 @@ namespace NovelDocs.Entity;
 public enum ManuscriptElementType { Section, Scene }
 
 public sealed class ManuscriptElement : IGoogleDocItem {
+    public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
 
     public bool IsChapter { get; set; }

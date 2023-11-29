@@ -234,13 +234,6 @@
                                             </Border.Style>
                                             <controls:BulletListControl Margin="5"
                                                                         Text="{Binding Details}" />
-                                            <!--<TextBlock HorizontalAlignment="Left"
-                                                VerticalAlignment="top"
-                                                TextWrapping="Wrap"
-                                                Margin="5"
-                                                FontSize="14"
-                                                Foreground="White"
-                                            Text="{Binding Details}"/>-->
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
