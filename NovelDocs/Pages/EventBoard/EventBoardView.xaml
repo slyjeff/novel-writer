@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:eventBoard="clr-namespace:NovelDocs.Pages.EventBoard"
+             xmlns:controls="clr-namespace:NovelDocs.Controls"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance eventBoard:EventBoardViewModel}">
     <Grid PreviewMouseMove="EventBoard_OnPreviewMouseMove">
         <Grid.RowDefinitions>
@@ -140,9 +141,9 @@
                           HorizontalScrollBarVisibility="Hidden"
                           VerticalAlignment="Top">
                 <ItemsControl ItemsSource="{Binding Events}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Width ="200"
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Width ="200"
                                 Margin="0, 5, 0, 5"
                                 CornerRadius="5"
                                 HorizontalAlignment="Left"
@@ -155,42 +156,42 @@
                                 DragOver="Event_OnDragOver"
                                 DragEnter="Event_OnDragOver"
                                 Drop="Event_OnDrop">
-                            <Border.Style>
-                                <Style TargetType="{x:Type Border}">
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="Indigo" />
-                                        </Trigger>
-                                        <Trigger Property="IsMouseOver" Value="False">
-                                            <Setter Property="Background" Value="DarkSlateBlue" />
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
+                                <Border.Style>
+                                    <Style TargetType="{x:Type Border}">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="Indigo" />
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="False">
+                                                <Setter Property="Background" Value="DarkSlateBlue" />
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
 
-                            <Grid>
-                                <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
-                                <Button Margin="2"
+                                <Grid>
+                                    <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                                    <Button Margin="2"
                                         Command="{Binding DataContext.DeleteEvent, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding}"
                                         HorizontalAlignment="Right"
                                         VerticalAlignment="Top"
                                         ToolTip="Delete Event">
-                                    <Image Margin="5"
+                                        <Image Margin="5"
                                            Source="/Images/Delete.png"/>
-                                </Button>
-                                <TextBlock HorizontalAlignment="Stretch"
+                                    </Button>
+                                    <TextBlock HorizontalAlignment="Stretch"
                                            VerticalAlignment="Center"
                                            TextAlignment="Center"
                                            FontSize="14"
                                            Foreground="White"
                                            TextWrapping="Wrap"
                                            Text="{Binding Name}" />
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
                 </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                </ItemsControl>
             </ScrollViewer>
 
             <ScrollViewer Margin="0, 0, 0, 0"
@@ -231,13 +232,15 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
-                                            <TextBlock HorizontalAlignment="Left"
+                                            <controls:BulletListControl Margin="5"
+                                                                        Text="{Binding Details}" />
+                                            <!--<TextBlock HorizontalAlignment="Left"
                                                 VerticalAlignment="top"
                                                 TextWrapping="Wrap"
                                                 Margin="5"
                                                 FontSize="14"
                                                 Foreground="White"
-                                            Text="{Binding Details}"/>
+                                            Text="{Binding Details}"/>-->
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
