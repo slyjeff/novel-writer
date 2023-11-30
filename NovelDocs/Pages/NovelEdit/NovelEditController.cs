@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows;
 using Microsoft.Win32;
@@ -158,7 +159,7 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
 
     private void EventBoardSelected() {
         var eventBoardController = _serviceProvider.CreateInstance<EventBoardController>();
-        eventBoardController.Initialize(ShowEditDataView);
+        eventBoardController.Initialize(ShowEditDataView, ShowScene);
         ViewModel.EditDataView = null;
         ViewModel.ContentView = eventBoardController.View;
     }
@@ -166,6 +167,26 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     private void ShowEditDataView(object? view) {
         ViewModel.EditDataView = view;
     }
+
+    private void ShowScene(Guid id) {
+        SelectManuscriptElementId(ViewModel.Manuscript.ManuscriptElements, id);
+    }
+
+    private static bool SelectManuscriptElementId(IEnumerable<ManuscriptElementTreeItem> treeItems, Guid id) {
+        foreach (var item in treeItems) {
+            if (item.ManuscriptElement.Id == id) {
+                item.IsSelected = true;
+                return true;
+            }
+
+            if (SelectManuscriptElementId(item.ManuscriptElements, id)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     private async void ManuscriptElementSelected(ManuscriptElementTreeItem treeItem) {
         if (treeItem.ManuscriptElement.Type == ManuscriptElementType.Section) {

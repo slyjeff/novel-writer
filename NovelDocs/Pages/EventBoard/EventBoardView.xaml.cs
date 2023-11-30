@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using NovelDocs.Entity;
+using NovelDocs.PageControls;
 
 namespace NovelDocs.Pages.EventBoard {
     public partial class EventBoardView {
@@ -13,6 +14,7 @@ namespace NovelDocs.Pages.EventBoard {
             InitializeComponent();
         }
 
+        public event Action<EventViewModel>? OnEventDoubleClicked;
         public event Action<Character, Character>? OnMoveCharacter;
         public event Action<EventViewModel, EventViewModel>? OnMoveEvent;
 
@@ -26,6 +28,26 @@ namespace NovelDocs.Pages.EventBoard {
             }
 
             viewModel.IsSelected = !viewModel.IsSelected;
+        }
+
+        private void Border_OnLeftButtonDown(object sender, MouseButtonEventArgs e) {
+            if (e.ClickCount != 2) {
+                return;
+            }
+
+            if (sender is not Border border) {
+                return;
+            }
+
+            if (border.DataContext is not SelectableViewModel viewModel) {
+                return;
+            }
+
+            if (viewModel is not EventViewModel eventViewModel) {
+                return;
+            }
+
+            OnEventDoubleClicked?.Invoke(eventViewModel);
         }
 
         private void ScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e) {

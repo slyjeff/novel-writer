@@ -151,6 +151,7 @@
                                 BorderThickness="{Binding BorderThickness}"
                                 Height="200"
                                 MouseLeftButtonUp="Border_OnMouseLeftButtonUp"
+                                MouseLeftButtonDown="Border_OnLeftButtonDown"
                                 AllowDrop="True"
                                 PreviewMouseDown="Event_OnPreviewMouseDown"
                                 DragOver="Event_OnDragOver"

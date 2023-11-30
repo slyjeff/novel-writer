@@ -18,6 +18,8 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
     private readonly IDataPersister _dataPersister;
     private readonly IServiceProvider _serviceProvider;
     private Action<object?>? _showEditDataView;
+    private Action<Guid>? _showScene;
+
 
     public EventBoardController(IDataPersister dataPersister, IServiceProvider serviceProvider) {
         _dataPersister = dataPersister;
@@ -25,12 +27,14 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
 
         View.OnMoveCharacter += MoveCharacter;
         View.OnMoveEvent += MoveEvent;
+        View.OnEventDoubleClicked += EventDoubleClicked;
     }
 
     private Novel Novel => _dataPersister.CurrentNovel;
 
-    public void Initialize(Action<object?> showEditDataView) {
+    public void Initialize(Action<object?> showEditDataView, Action<Guid> showScene) {
         _showEditDataView = showEditDataView;
+        _showScene = showScene;
         ViewModel.Events = new ObservableCollection<EventViewModel>(Novel.Events.Select(CreateEventViewModel));
         foreach (var eventBoardCharacter in Novel.EventBoardCharacters) {
             var character = Novel.FindCharacterById(eventBoardCharacter.Id);
@@ -98,7 +102,7 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
     }
 
     private bool _changingSelected;
-
+    
     private void SelectableViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e) {
         if (e.PropertyName != nameof(SelectableViewModel.IsSelected)) {
             return;
@@ -223,6 +227,15 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
 
         _dataPersister.Save();
     }
+
+    private void EventDoubleClicked(EventViewModel eventViewModel) {
+        if (eventViewModel.Event.SceneId == null) {
+            return;
+        }
+
+        _showScene?.Invoke(eventViewModel.Event.SceneId.Value);
+    }
+
 
     [Command]
     public async Task AddEvent() {
