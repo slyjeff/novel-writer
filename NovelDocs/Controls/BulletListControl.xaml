@@ -9,7 +9,8 @@
              LostFocus="BulletListControl_OnLostFocus"
              Focusable="True">
     <Grid>
-        <ItemsControl x:Name="ItemsControl">
+        <ItemsControl x:Name="ItemsControl"
+                      Visibility="Visible">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <Grid>

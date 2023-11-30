@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.DirectoryServices.ActiveDirectory;
 using System.Windows;
 using System.Windows.Controls;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace NovelDocs.Controls; 
 
@@ -16,6 +19,25 @@ public partial class BulletListControl {
         set => SetValue(TextProperty, value);
     }
 
+    private bool _isEditing = false;
+
+    private void UpdateVisibility() {
+        if (ReadOnly) {
+            ItemsControl.Visibility = Visibility.Visible;
+            TextBox.Visibility = Visibility.Hidden;
+            return;
+        }
+
+        if (_isEditing || string.IsNullOrEmpty(Text)) {
+            ItemsControl.Visibility = Visibility.Hidden;
+            TextBox.Visibility = Visibility.Visible;
+            return;
+        }
+
+        ItemsControl.Visibility = Visibility.Visible;
+        TextBox.Visibility = Visibility.Hidden;
+    }
+
     private static void OnTextChange(DependencyObject d, DependencyPropertyChangedEventArgs e) {
         if (d is not BulletListControl bulletListControl) {
             return;
@@ -23,18 +45,13 @@ public partial class BulletListControl {
 
         var text = e.NewValue as string;
         if (string.IsNullOrEmpty(text)) {
-            bulletListControl.ItemsControl.Visibility = Visibility.Hidden;
-            if (!bulletListControl.ReadOnly) {
-                bulletListControl.TextBox.Visibility = Visibility.Visible;
-                bulletListControl.TextBox.Text = string.Empty;
-            }
-            return;
-        }
-
-        bulletListControl.ItemsControl.ItemsSource = text.Split(Environment.NewLine);
-        if (!bulletListControl.ReadOnly) {
+            bulletListControl.ItemsControl.ItemsSource = new List<string>();
+            bulletListControl.TextBox.Text = string.Empty;
+        } else {
+            bulletListControl.ItemsControl.ItemsSource = text.Split(Environment.NewLine);
             bulletListControl.TextBox.Text = text;
         }
+        bulletListControl.UpdateVisibility();
     }
 
     public static readonly DependencyProperty ReadOnlyProperty = DependencyProperty.RegisterAttached("ReadOnly", typeof(bool), typeof(BulletListControl), new UIPropertyMetadata(true, ReadOnlyChange));
@@ -45,6 +62,7 @@ public partial class BulletListControl {
         }
 
         bulletListControl.Focusable = !bulletListControl.ReadOnly;
+        bulletListControl.UpdateVisibility();
     }
 
     public bool ReadOnly {
@@ -61,16 +79,12 @@ public partial class BulletListControl {
     }
 
     private void BulletListControl_OnGotFocus(object sender, RoutedEventArgs e) {
-        if (!ReadOnly) {
-            ItemsControl.Visibility = Visibility.Hidden;
-            TextBox.Visibility = Visibility.Visible;
-        }
+        _isEditing = true;
+        UpdateVisibility();
     }
 
     private void BulletListControl_OnLostFocus(object sender, RoutedEventArgs e) {
-        ItemsControl.Visibility = string.IsNullOrEmpty(Text) ? Visibility.Hidden : Visibility.Visible;
-        if (!ReadOnly) {
-            TextBox.Visibility = string.IsNullOrEmpty(Text) ? Visibility.Visible : Visibility.Hidden;
-        }
+        _isEditing = false;
+        UpdateVisibility();
     }
 }
