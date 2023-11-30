@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows;
+using Microsoft.Office.Interop.Word;
 using Microsoft.Win32;
 using NovelDocs.Entity;
 using NovelDocs.Extensions;
@@ -13,6 +14,7 @@ using NovelDocs.Pages.GoogleDoc;
 using NovelDocs.Pages.NovelDetails;
 using NovelDocs.Pages.SceneDetails;
 using NovelDocs.Pages.SectionDetails;
+using NovelDocs.Pages.SupportDocumentDetails;
 using NovelDocs.Pages.TypesettingOptions;
 using NovelDocs.Services;
 using Task = System.Threading.Tasks.Task;
@@ -56,6 +58,11 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         foreach (var character in Novel.Characters) {
             var treeItem = new CharacterTreeItem(character, CharacterSelected);
             ViewModel.Characters.Characters.Add(treeItem);
+        }
+
+        foreach (var supportDocument in Novel.SupportDocuments) {
+            var treeItem = new SupportDocumentTreeItem(supportDocument, SupportDocumentSelected);
+            ViewModel.SupportDocuments.Documents.Add(treeItem);
         }
     }
 
@@ -215,6 +222,14 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         ViewModel.ContentView = _googleDocController.View;
     }
 
+    private async void SupportDocumentSelected(SupportDocumentTreeItem treeItem) {
+        var supportDocumentDetailsController = _serviceProvider.CreateInstance<SupportDocumentDetailsController>();
+        await supportDocumentDetailsController.Initialize(treeItem);
+        ViewModel.EditDataView = supportDocumentDetailsController.View;
+        ViewModel.ContentView = _googleDocController.View;
+    }
+
+
     private async Task AddManuscriptElement(ManuscriptElementTreeItem? parent, ManuscriptElement newManuscriptElement) {
         var newTreeItem = new ManuscriptElementTreeItem(newManuscriptElement, ViewModel, ManuscriptElementSelected) {
             Parent = parent
@@ -353,4 +368,17 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
 
         treeItem.IsSelected = true;
     }
+
+    [Command]
+    public async Task AddSupportDocument() {
+        var supportDocument = new SupportDocument {
+            Name = "New Support Document"
+        };
+        Novel.SupportDocuments.Add(supportDocument);
+        await _dataPersister.Save();
+
+        var treeItem = new SupportDocumentTreeItem(supportDocument, SupportDocumentSelected);
+        ViewModel.SupportDocuments.Documents.Add(treeItem);
+    }
+
 }

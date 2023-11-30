@@ -14,6 +14,7 @@ public sealed class Novel {
     public string ScenesFolder { get; set; } = string.Empty;
     public string ImagesFolder { get; set; } = string.Empty;
     public string CharactersFolder { get; set; } = string.Empty;
+    public string SupportDocumentsFolder { get; set; } = string.Empty;
     public string ManuscriptId { get; set; } = string.Empty;
     public Typesetting Typesetting { get; set; } = new Typesetting();
     
@@ -25,10 +26,13 @@ public sealed class Novel {
 
     public IList<EventBoardCharacter> EventBoardCharacters { get; set; } = new List<EventBoardCharacter>();
 
+    public IList<SupportDocument> SupportDocuments { get; set; } = new List<SupportDocument>();
+
     public string GetFolder(GoogleDocType googleDocType) {
         return googleDocType switch {
             GoogleDocType.Scene => ScenesFolder,
             GoogleDocType.Character => CharactersFolder,
+            GoogleDocType.SupportDocument => SupportDocumentsFolder,
             GoogleDocType.Image => ImagesFolder,
             _ => throw new ArgumentOutOfRangeException(nameof(googleDocType), googleDocType, null)
         };
@@ -41,6 +45,9 @@ public sealed class Novel {
                 break;
             case GoogleDocType.Scene:
                 ScenesFolder = newDirectoryId;
+                break;
+            case GoogleDocType.SupportDocument:
+                SupportDocumentsFolder = newDirectoryId;
                 break;
             case GoogleDocType.Image:
                 ImagesFolder = newDirectoryId;
