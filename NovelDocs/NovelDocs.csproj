@@ -19,6 +19,7 @@
     <None Remove="Images\Document.png" />
     <None Remove="Images\Documents.png" />
     <None Remove="Images\EmptyDocument.png" />
+    <None Remove="Images\Events.png" />
     <None Remove="Images\Manuscript.png" />
     <None Remove="Images\MicrosoftWord.png" />
     <None Remove="Images\Scene.png" />
@@ -42,6 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Images\Events.png" />
     <Resource Include="Images\MicrosoftWord.png" />
   </ItemGroup>
 

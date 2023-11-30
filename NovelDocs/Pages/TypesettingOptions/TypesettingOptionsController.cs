@@ -17,7 +17,7 @@ internal class TypesettingOptionsController : Controller<TypesettingOptionsView,
             ViewModel.Fonts = installedFonts.Families.Select(f => f.Name).ToList();
         }
 
-        ViewModel.Novel = dataPersister.CurrentNovel ?? throw new Exception("Novel not found.");
+        ViewModel.Novel = dataPersister.CurrentNovel;
 
         ViewModel.PropertyChanged += async (_, _) => {
             await dataPersister.Save();

@@ -3,35 +3,34 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using NovelDocs.Entity;
-using NovelDocs.Managers;
 
 namespace NovelDocs.Services;
 
 public interface IDataPersister {
-    Novel? CurrentNovel { get; }
+    Novel CurrentNovel { get; }
     Task AddNovel(IGoogleDirectory googleDirectory);
     public Task Save();
     public Data Data { get; }
     Task<bool> OpenNovel(NovelData? novelData = null);
     void CloseNovel();
+    bool IsSaving { get; }
+
+    event Action? OnFinishedSaving;
 }
 
 internal sealed class DataPersister : IDataPersister {
     private readonly IGoogleDocService _googleDocService;
-    private readonly IServiceProvider _serviceProvider;
     private const string FileName = "data.nd";
     private Data? _data;
     private OpenedNovel? _currentlyOpenedNovel;
 
-    public DataPersister(IGoogleDocService googleDocService, IServiceProvider serviceProvider) {
+    public DataPersister(IGoogleDocService googleDocService) {
         _googleDocService = googleDocService;
-        _serviceProvider = serviceProvider;
     }
 
-    public Novel? CurrentNovel => _currentlyOpenedNovel?.Novel;
+    public Novel CurrentNovel => _currentlyOpenedNovel?.Novel ?? throw new Exception("Attempted to access novel when there is not open novel.");
 
     public async Task AddNovel(IGoogleDirectory googleDirectory) {
         var novel = new Novel {
@@ -60,7 +59,10 @@ internal sealed class DataPersister : IDataPersister {
         Data.LastOpenedNovel = novel.Name;
     }
 
+
     private readonly Timer _saveTimer = new(1000);
+    public bool IsSaving => _saveTimer.Enabled;
+    public event Action? OnFinishedSaving;
 
     public async Task Save() {
         if (_data == null) {
@@ -75,7 +77,8 @@ internal sealed class DataPersister : IDataPersister {
             //for wait a second to send all updates at once.
             if (_saveTimer.Enabled) {
                 _saveTimer.Stop();
-            } else {
+            }
+            else {
                 _saveTimer.Elapsed += SaveNovel;
             }
 
@@ -95,6 +98,7 @@ internal sealed class DataPersister : IDataPersister {
         }
 
         await _googleDocService.UpdateFile(_currentlyOpenedNovel.NovelData.GoogleId, JsonConvert.SerializeObject(_currentlyOpenedNovel.Novel));
+        OnFinishedSaving?.Invoke();
     }
 
     public async Task<bool> OpenNovel(NovelData? novelData = null) {

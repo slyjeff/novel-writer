@@ -20,6 +20,19 @@ internal sealed class MainController : Controller<MainView, MainViewModel> {
         _dataPersister = dataPersister;
         _serviceProvider = serviceProvider;
         _googleDocManager = googleDocManager;
+
+        View.Closing += (_, e) => {
+            if (!dataPersister.IsSaving) {
+                return;
+            }
+
+            e.Cancel = true;
+            dataPersister.OnFinishedSaving += () => {
+                View.Dispatcher.Invoke(() => {
+                    View.Close();
+                });
+            };
+        };
     }
 
     public async Task Initialize() {

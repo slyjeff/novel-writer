@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows;
 using Microsoft.Win32;
@@ -7,6 +8,7 @@ using NovelDocs.Extensions;
 using NovelDocs.Managers;
 using NovelDocs.PageControls;
 using NovelDocs.Pages.CharacterDetails;
+using NovelDocs.Pages.EventBoard;
 using NovelDocs.Pages.GoogleDoc;
 using NovelDocs.Pages.NovelDetails;
 using NovelDocs.Pages.SceneDetails;
@@ -20,6 +22,7 @@ namespace NovelDocs.Pages.NovelEdit;
 internal sealed class NovelEditController : Controller<NovelEditView, NovelEditViewModel> {
     private readonly IServiceProvider _serviceProvider;
     private readonly IDataPersister _dataPersister;
+    private readonly IGoogleDocController _googleDocController;
     private readonly IGoogleDocManager _googleDocManager;
     private readonly IMsWordManager _msWordManager;
     private Action _novelClosed = null!; //will never be null because initialize will always be called
@@ -27,28 +30,20 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister, IGoogleDocController googleDocController, IGoogleDocManager googleDocManager, IMsWordManager msWordManager) {
         _serviceProvider = serviceProvider;
         _dataPersister = dataPersister;
+        _googleDocController = googleDocController;
         _googleDocManager = googleDocManager;
         _msWordManager = msWordManager;
-
-        ViewModel.GoogleDocView = googleDocController.View;
 
         View.OnMoveNovelTreeItem += MoveNovelTreeItem;
     }
 
-    private Novel Novel {
-        get {
-            if (_dataPersister.CurrentNovel == null) {
-                throw new Exception("Attempting to access novel before it has been opened.");
-            }
-
-            return _dataPersister.CurrentNovel;
-        }
-    }
+    private Novel Novel => _dataPersister.CurrentNovel;
 
     public void Initialize(Action novelClosed) {
         _novelClosed = novelClosed;
 
         ViewModel.Manuscript.Selected += ManuscriptSelected;
+        ViewModel.EventBoard.Selected += EventBoardSelected;
         ViewModel.Characters.Selected += CharactersSelected;
 
         foreach (var element in Novel.ManuscriptElements) {
@@ -159,35 +154,72 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         var novelDetailsController = _serviceProvider.CreateInstance<NovelDetailsController>();
         await novelDetailsController.Initialize(Novel);
         ViewModel.EditDataView = novelDetailsController.View;
+        ViewModel.ContentView = null;
     }
+
+    private void EventBoardSelected() {
+        var eventBoardController = _serviceProvider.CreateInstance<EventBoardController>();
+        eventBoardController.Initialize(ShowEditDataView, ShowScene);
+        ViewModel.EditDataView = null;
+        ViewModel.ContentView = eventBoardController.View;
+    }
+
+    private void ShowEditDataView(object? view) {
+        ViewModel.EditDataView = view;
+    }
+
+    private void ShowScene(Guid id) {
+        SelectManuscriptElementId(ViewModel.Manuscript.ManuscriptElements, id);
+    }
+
+    private static bool SelectManuscriptElementId(IEnumerable<ManuscriptElementTreeItem> treeItems, Guid id) {
+        foreach (var item in treeItems) {
+            if (item.ManuscriptElement.Id == id) {
+                item.IsSelected = true;
+                return true;
+            }
+
+            if (SelectManuscriptElementId(item.ManuscriptElements, id)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     private async void ManuscriptElementSelected(ManuscriptElementTreeItem treeItem) {
         if (treeItem.ManuscriptElement.Type == ManuscriptElementType.Section) {
             var novelDetailsController = _serviceProvider.CreateInstance<SectionDetailsController>();
             novelDetailsController.Initialize(treeItem);
             ViewModel.EditDataView = novelDetailsController.View;
+            ViewModel.ContentView = null;
             return;
         }
 
         var sceneDetailsController = _serviceProvider.CreateInstance<SceneDetailsController>();
         await sceneDetailsController.Initialize(treeItem);
         ViewModel.EditDataView = sceneDetailsController.View;
+        ViewModel.ContentView = _googleDocController.View;
     }
 
     private void CharactersSelected() {
-        ViewModel.EditDataView = null!;
+        ViewModel.ContentView = null;
+        ViewModel.EditDataView = null;
     }
 
     private async void CharacterSelected(CharacterTreeItem treeItem) {
         var characterDetailsController = _serviceProvider.CreateInstance<CharacterDetailsController>();
         await characterDetailsController.Initialize(treeItem);
         ViewModel.EditDataView = characterDetailsController.View;
+        ViewModel.ContentView = _googleDocController.View;
     }
 
     private async Task AddManuscriptElement(ManuscriptElementTreeItem? parent, ManuscriptElement newManuscriptElement) {
         var newTreeItem = new ManuscriptElementTreeItem(newManuscriptElement, ViewModel, ManuscriptElementSelected) {
             Parent = parent
         };
+
         if (parent == null) {
             Novel.ManuscriptElements.Add(newManuscriptElement);
             ViewModel.Manuscript.ManuscriptElements.Add(newTreeItem);
@@ -235,6 +267,14 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         }
     }
 
+    private void CloseAfterFinishedSaving() {
+        _dataPersister.OnFinishedSaving -= CloseAfterFinishedSaving;
+        View.Dispatcher.Invoke(() => {
+            _dataPersister.CloseNovel();
+            _novelClosed.Invoke();
+        });
+    }
+
     [Command]
     public async Task CompileNovel() {
         if (MessageBox.Show($"Compile Novel {Novel.Name}?", "Confirmation", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
@@ -256,8 +296,11 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     }
 
     [Command]
-    public async Task CloseNovel() {
-        await _dataPersister.Save();
+    public void CloseNovel() {
+        if (_dataPersister.IsSaving) {
+            _dataPersister.OnFinishedSaving += CloseAfterFinishedSaving;
+            return;
+        }
         _dataPersister.CloseNovel();
         _novelClosed.Invoke();
     }

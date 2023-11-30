@@ -137,6 +137,24 @@
                         </StackPanel>
                     </HierarchicalDataTemplate>
 
+                    <DataTemplate DataType="{x:Type novelEdit:EventBoardTreeItem}" >
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0, 0, 10, 0">
+
+                            <Image Width="45">
+                                <Image.Source>
+                                    <BitmapImage DecodePixelWidth="45" UriSource="/images/Events.png" />
+                                </Image.Source>
+                            </Image>
+
+                            <TextBlock FontSize="20"
+                                       Margin="5, 0, 0, 0"
+                                       Foreground="White"
+                                       VerticalAlignment="Center"
+                                       Text="Event Board" />
+                        </StackPanel>
+                    </DataTemplate>
+
                     <HierarchicalDataTemplate DataType="{x:Type novelEdit:CharactersTreeItem}" ItemsSource="{Binding Characters}">
                         <StackPanel Orientation="Horizontal"
                                     Margin="5, 5, 10, 5"
@@ -202,7 +220,7 @@
             <GridSplitter Grid.Column="0" Width="5" HorizontalAlignment="Right" VerticalAlignment="Stretch" ResizeBehavior="CurrentAndNext"/>
 
             <ContentControl Grid.Column="1" 
-                            Content="{Binding GoogleDocView}" />
+                            Content="{Binding ContentView}" />
 
             <Separator Grid.Column="2" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
             <ScrollViewer Grid.Column="3"

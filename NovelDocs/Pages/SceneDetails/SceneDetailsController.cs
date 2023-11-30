@@ -26,9 +26,6 @@ internal sealed class SceneDetailsController : Controller<SceneDetailsView, Scen
         };
 
         var novel = dataPersister.CurrentNovel;
-        if (novel == null) {
-            return;
-        }
 
         foreach (var character in novel.Characters) {
             ViewModel.AvailableCharacters.Add(character);
@@ -50,7 +47,7 @@ internal sealed class SceneDetailsController : Controller<SceneDetailsView, Scen
         await _googleDocController.Show(ViewModel);
     }
 
-    private void CharacterInSceneChanged(object? sender, PropertyChangedEventArgs e) {
+    private async void CharacterInSceneChanged(object? sender, PropertyChangedEventArgs e) {
         if (e.PropertyName == nameof(CharacterInSceneViewModel.SelectedCharacter)) {
             return;
         }
@@ -65,7 +62,7 @@ internal sealed class SceneDetailsController : Controller<SceneDetailsView, Scen
             charactersInScene.Add(characterInSceneViewModel.SelectedCharacter!.Id);
         }
 
-        _dataPersister.Save();
+        await _dataPersister.Save();
     }
 
     public void CharacterRemovedFromScene(CharacterInSceneViewModel characterInSceneViewModel) {
