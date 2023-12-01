@@ -77,7 +77,7 @@
                                     <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                                     <MenuItem Header="Add Section"
                                               Command="{Binding DataContext.ViewModel.AddSection, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"/>
-                                    
+
                                     <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                                     <MenuItem Header="Add Scene"
                                               Command="{Binding DataContext.ViewModel.AddScene, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"/>
@@ -100,7 +100,7 @@
                     <HierarchicalDataTemplate DataType="{x:Type novelEdit:ManuscriptElementTreeItem}" ItemsSource="{Binding ManuscriptElements}">
                         <StackPanel Orientation="Horizontal"
                                     Margin="0, 2, 10, 2">
-                            
+
                             <StackPanel.ContextMenu>
                                 <ContextMenu>
                                     <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
@@ -140,7 +140,7 @@
                     <DataTemplate DataType="{x:Type novelEdit:EventBoardTreeItem}" >
                         <StackPanel Orientation="Horizontal"
                                     Margin="0, 0, 10, 0">
-
+                            
                             <Image Width="45">
                                 <Image.Source>
                                     <BitmapImage DecodePixelWidth="45" UriSource="/images/Events.png" />
@@ -168,12 +168,12 @@
                                 </ContextMenu>
                             </StackPanel.ContextMenu>
 
-
                             <Image Width="40">
                                 <Image.Source>
                                     <BitmapImage DecodePixelWidth="40" UriSource="/images/Characters.png" />
                                 </Image.Source>
                             </Image>
+
                             <TextBlock FontSize="20"
                                        Margin="5, 0, 0, 0"
                                        Foreground="White"
@@ -185,8 +185,67 @@
                     <DataTemplate DataType="{x:Type novelEdit:CharacterTreeItem}">
                         <StackPanel Orientation="Horizontal"
                                     Margin="0, 2, 10, 2">
+                            
+                            <StackPanel.ContextMenu>
+                                <ContextMenu>
+                                    <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                                    <MenuItem Header="Delete Character"
+                                              Command="{Binding DataContext.ViewModel.DeleteCharacter, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"
+                                              CommandParameter="{Binding}"/>
+                                </ContextMenu>
+                            </StackPanel.ContextMenu>
+                            
                             <Image Width="50" Source="{Binding ImageUriSource}" />
 
+                            <TextBlock FontSize="20"
+                                       Margin="10, 0, 0, 0"
+                                       Foreground="White"
+                                       VerticalAlignment="Center"
+                                       Text="{Binding Name}" />
+                        </StackPanel>
+                    </DataTemplate>
+
+                    <HierarchicalDataTemplate DataType="{x:Type novelEdit:SupportDocumentsTreeItem}" ItemsSource="{Binding Documents}">
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0, 0, 10, 0">
+
+                            <StackPanel.ContextMenu>
+                                <ContextMenu>
+                                    <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                                    <MenuItem Header="Add Document"
+                                              Command="{Binding DataContext.ViewModel.AddSupportDocument, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"/>
+                                </ContextMenu>
+                            </StackPanel.ContextMenu>
+
+                            <Image Width="45">
+                                <Image.Source>
+                                    <BitmapImage DecodePixelWidth="45" UriSource="/images/Documents.png" />
+                                </Image.Source>
+                            </Image>
+
+                            <TextBlock FontSize="20"
+                                       Margin="5, 0, 0, 0"
+                                       Foreground="White"
+                                       VerticalAlignment="Center"
+                                       Text="Support Documents" />
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+
+                    <DataTemplate DataType="{x:Type novelEdit:SupportDocumentTreeItem}">
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0, 2, 10, 2">
+
+                            <StackPanel.ContextMenu>
+                                <ContextMenu>
+                                    <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                                    <MenuItem Header="Delete Support Document"
+                                              Command="{Binding DataContext.ViewModel.DeleteSupportDocument, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"
+                                              CommandParameter="{Binding}"/>
+                                </ContextMenu>
+                            </StackPanel.ContextMenu>
+
+                            <Image Width="40" Source="/images/Document.png" />
+                
                             <TextBlock FontSize="20"
                                        Margin="10, 0, 0, 0"
                                        Foreground="White"

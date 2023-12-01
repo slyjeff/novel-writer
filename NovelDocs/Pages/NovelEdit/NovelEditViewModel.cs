@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using NovelDocs.Entity;
 using NovelDocs.PageControls;
-using NovelDocs.Pages.GoogleDoc;
 
 namespace NovelDocs.Pages.NovelEdit; 
 
@@ -13,6 +12,7 @@ public abstract class NovelEditViewModel : ViewModel {
     protected NovelEditViewModel() {
         Manuscript.ViewModel = this;
         Characters.ViewModel = this;
+        SupportDocuments.ViewModel = this;
     }
 
     public virtual object? ContentView { get; set; } = null;
@@ -24,10 +24,13 @@ public abstract class NovelEditViewModel : ViewModel {
 
     public CharactersTreeItem Characters => (CharactersTreeItem)TreeItems[2];
 
+    public SupportDocumentsTreeItem SupportDocuments => (SupportDocumentsTreeItem)TreeItems[3];
+
     public IList<object> TreeItems { get; } = new List<object> {
         new ManuscriptTreeItem { IsExpanded = false },
         new EventBoardTreeItem(),
         new CharactersTreeItem{ IsExpanded = false },
+        new SupportDocumentsTreeItem {IsExpanded = false }
     };
 }
 
@@ -91,7 +94,6 @@ public sealed class EventBoardTreeItem : NovelTreeItem {
     public override string Name => "Event Board";
 }
 
-
 public sealed class CharactersTreeItem : NovelTreeItem {
     public override string Name => "Characters";
     public IList<CharacterTreeItem> Characters { get; } = new ObservableCollection<CharacterTreeItem>();
@@ -139,7 +141,8 @@ public sealed class ManuscriptElementTreeItem : NovelTreeItem {
 }
 
 public sealed class CharacterTreeItem : NovelTreeItem {
-    public CharacterTreeItem(Character character, Action<CharacterTreeItem> selected) {
+    public CharacterTreeItem(Character character, NovelEditViewModel viewModel, Action<CharacterTreeItem> selected) {
+        ViewModel = viewModel;
         Character = character;
         Selected += () => selected(this);
     }
@@ -149,4 +152,21 @@ public sealed class CharacterTreeItem : NovelTreeItem {
     public override string Name => Character.Name;
 
     public string ImageUriSource => Character.ImageUriSource;
+}
+
+public sealed class SupportDocumentsTreeItem : NovelTreeItem {
+    public override string Name => "Support Documents";
+    public ObservableCollection<SupportDocumentTreeItem> Documents { get; } = new ObservableCollection<SupportDocumentTreeItem>();
+}
+
+public sealed class SupportDocumentTreeItem : NovelTreeItem {
+    public SupportDocumentTreeItem(SupportDocument supportDocument, NovelEditViewModel viewModel, Action<SupportDocumentTreeItem> selected) {
+        ViewModel = viewModel;
+        SupportDocument = supportDocument;
+        Selected += () => selected(this);
+    }
+
+    public SupportDocument SupportDocument { get; }
+
+    public override string Name => SupportDocument.Name;
 }

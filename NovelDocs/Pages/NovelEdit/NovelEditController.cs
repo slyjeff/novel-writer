@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Windows;
 using Microsoft.Win32;
 using NovelDocs.Entity;
@@ -13,6 +14,7 @@ using NovelDocs.Pages.GoogleDoc;
 using NovelDocs.Pages.NovelDetails;
 using NovelDocs.Pages.SceneDetails;
 using NovelDocs.Pages.SectionDetails;
+using NovelDocs.Pages.SupportDocumentDetails;
 using NovelDocs.Pages.TypesettingOptions;
 using NovelDocs.Services;
 using Task = System.Threading.Tasks.Task;
@@ -54,8 +56,13 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         ViewModel.Manuscript.IsSelected = true;
 
         foreach (var character in Novel.Characters) {
-            var treeItem = new CharacterTreeItem(character, CharacterSelected);
+            var treeItem = new CharacterTreeItem(character, ViewModel, CharacterSelected);
             ViewModel.Characters.Characters.Add(treeItem);
+        }
+
+        foreach (var supportDocument in Novel.SupportDocuments) {
+            var treeItem = new SupportDocumentTreeItem(supportDocument, ViewModel, SupportDocumentSelected);
+            ViewModel.SupportDocuments.Documents.Add(treeItem);
         }
     }
 
@@ -215,6 +222,14 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         ViewModel.ContentView = _googleDocController.View;
     }
 
+    private async void SupportDocumentSelected(SupportDocumentTreeItem treeItem) {
+        var supportDocumentDetailsController = _serviceProvider.CreateInstance<SupportDocumentDetailsController>();
+        await supportDocumentDetailsController.Initialize(treeItem);
+        ViewModel.EditDataView = supportDocumentDetailsController.View;
+        ViewModel.ContentView = _googleDocController.View;
+    }
+
+
     private async Task AddManuscriptElement(ManuscriptElementTreeItem? parent, ManuscriptElement newManuscriptElement) {
         var newTreeItem = new ManuscriptElementTreeItem(newManuscriptElement, ViewModel, ManuscriptElementSelected) {
             Parent = parent
@@ -328,6 +343,10 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
 
     [Command]
     public async Task DeleteManuscriptElement(ManuscriptElementTreeItem itemToDelete) {
+        if (MessageBox.Show($"Delete {itemToDelete.Name}?", "Confirm Delete", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
+            return;
+        }
+
         if (itemToDelete.Parent == null) {
             Novel.ManuscriptElements.Remove(itemToDelete.ManuscriptElement);
             ViewModel.Manuscript.ManuscriptElements.Remove(itemToDelete);
@@ -348,9 +367,49 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         Novel.Characters.Add(character);
         await _dataPersister.Save();
 
-        var treeItem = new CharacterTreeItem(character, CharacterSelected);
+        var treeItem = new CharacterTreeItem(character, ViewModel, CharacterSelected);
         ViewModel.Characters.Characters.Add(treeItem);
 
         treeItem.IsSelected = true;
+    }
+
+    [Command]
+    public async Task DeleteCharacter(CharacterTreeItem characterToDelete) {
+        if (MessageBox.Show($"Delete {characterToDelete.Name}?", "Confirm Delete", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
+            return;
+        }
+
+        Novel.Characters.Remove(characterToDelete.Character);
+        var eventBoardCharacterToRemove = Novel.EventBoardCharacters.FirstOrDefault(x => x.Id == characterToDelete.Character.Id);
+        if (eventBoardCharacterToRemove != null) {
+            Novel.EventBoardCharacters.Remove(eventBoardCharacterToRemove);
+        }
+        await _dataPersister.Save();
+
+        ViewModel.Characters.Characters.Remove(characterToDelete);
+    }
+
+    [Command]
+    public async Task AddSupportDocument() {
+        var supportDocument = new SupportDocument {
+            Name = "New Support Document"
+        };
+        Novel.SupportDocuments.Add(supportDocument);
+        await _dataPersister.Save();
+
+        var treeItem = new SupportDocumentTreeItem(supportDocument, ViewModel,SupportDocumentSelected);
+        ViewModel.SupportDocuments.Documents.Add(treeItem);
+    }
+
+    [Command]
+    public async Task DeleteSupportDocument(SupportDocumentTreeItem supportDocumentToDelete) {
+        if (MessageBox.Show($"Delete {supportDocumentToDelete.Name}?", "Confirm Delete", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
+            return;
+        }
+
+        Novel.SupportDocuments.Remove(supportDocumentToDelete.SupportDocument);
+        await _dataPersister.Save();
+
+        ViewModel.SupportDocuments.Documents.Remove(supportDocumentToDelete);
     }
 }
