@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Windows;
-using Microsoft.Office.Interop.Word;
 using Microsoft.Win32;
 using NovelDocs.Entity;
 using NovelDocs.Extensions;
@@ -56,12 +56,12 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         ViewModel.Manuscript.IsSelected = true;
 
         foreach (var character in Novel.Characters) {
-            var treeItem = new CharacterTreeItem(character, CharacterSelected);
+            var treeItem = new CharacterTreeItem(character, ViewModel, CharacterSelected);
             ViewModel.Characters.Characters.Add(treeItem);
         }
 
         foreach (var supportDocument in Novel.SupportDocuments) {
-            var treeItem = new SupportDocumentTreeItem(supportDocument, SupportDocumentSelected);
+            var treeItem = new SupportDocumentTreeItem(supportDocument, ViewModel, SupportDocumentSelected);
             ViewModel.SupportDocuments.Documents.Add(treeItem);
         }
     }
@@ -343,6 +343,10 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
 
     [Command]
     public async Task DeleteManuscriptElement(ManuscriptElementTreeItem itemToDelete) {
+        if (MessageBox.Show($"Delete {itemToDelete.Name}?", "Confirm Delete", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
+            return;
+        }
+
         if (itemToDelete.Parent == null) {
             Novel.ManuscriptElements.Remove(itemToDelete.ManuscriptElement);
             ViewModel.Manuscript.ManuscriptElements.Remove(itemToDelete);
@@ -363,10 +367,26 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         Novel.Characters.Add(character);
         await _dataPersister.Save();
 
-        var treeItem = new CharacterTreeItem(character, CharacterSelected);
+        var treeItem = new CharacterTreeItem(character, ViewModel, CharacterSelected);
         ViewModel.Characters.Characters.Add(treeItem);
 
         treeItem.IsSelected = true;
+    }
+
+    [Command]
+    public async Task DeleteCharacter(CharacterTreeItem characterToDelete) {
+        if (MessageBox.Show($"Delete {characterToDelete.Name}?", "Confirm Delete", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
+            return;
+        }
+
+        Novel.Characters.Remove(characterToDelete.Character);
+        var eventBoardCharacterToRemove = Novel.EventBoardCharacters.FirstOrDefault(x => x.Id == characterToDelete.Character.Id);
+        if (eventBoardCharacterToRemove != null) {
+            Novel.EventBoardCharacters.Remove(eventBoardCharacterToRemove);
+        }
+        await _dataPersister.Save();
+
+        ViewModel.Characters.Characters.Remove(characterToDelete);
     }
 
     [Command]
@@ -377,8 +397,19 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         Novel.SupportDocuments.Add(supportDocument);
         await _dataPersister.Save();
 
-        var treeItem = new SupportDocumentTreeItem(supportDocument, SupportDocumentSelected);
+        var treeItem = new SupportDocumentTreeItem(supportDocument, ViewModel,SupportDocumentSelected);
         ViewModel.SupportDocuments.Documents.Add(treeItem);
     }
 
+    [Command]
+    public async Task DeleteSupportDocument(SupportDocumentTreeItem supportDocumentToDelete) {
+        if (MessageBox.Show($"Delete {supportDocumentToDelete.Name}?", "Confirm Delete", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
+            return;
+        }
+
+        Novel.SupportDocuments.Remove(supportDocumentToDelete.SupportDocument);
+        await _dataPersister.Save();
+
+        ViewModel.SupportDocuments.Documents.Remove(supportDocumentToDelete);
+    }
 }

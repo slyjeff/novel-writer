@@ -141,7 +141,8 @@ public sealed class ManuscriptElementTreeItem : NovelTreeItem {
 }
 
 public sealed class CharacterTreeItem : NovelTreeItem {
-    public CharacterTreeItem(Character character, Action<CharacterTreeItem> selected) {
+    public CharacterTreeItem(Character character, NovelEditViewModel viewModel, Action<CharacterTreeItem> selected) {
+        ViewModel = viewModel;
         Character = character;
         Selected += () => selected(this);
     }
@@ -159,7 +160,8 @@ public sealed class SupportDocumentsTreeItem : NovelTreeItem {
 }
 
 public sealed class SupportDocumentTreeItem : NovelTreeItem {
-    public SupportDocumentTreeItem(SupportDocument supportDocument, Action<SupportDocumentTreeItem> selected) {
+    public SupportDocumentTreeItem(SupportDocument supportDocument, NovelEditViewModel viewModel, Action<SupportDocumentTreeItem> selected) {
+        ViewModel = viewModel;
         SupportDocument = supportDocument;
         Selected += () => selected(this);
     }

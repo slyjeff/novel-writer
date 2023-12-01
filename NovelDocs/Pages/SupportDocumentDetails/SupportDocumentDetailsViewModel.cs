@@ -3,5 +3,5 @@
 namespace NovelDocs.Pages.SupportDocumentDetails;
 
 public abstract class SupportDocumentDetailsViewModel : GoogleDocViewModel<SupportDocument> {
-    public override GoogleDocType GoogleDocType => GoogleDocType.Character;
+    public override GoogleDocType GoogleDocType => GoogleDocType.SupportDocument;
 }

@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using NovelDocs.Managers;
 using NovelDocs.PageControls;
 using NovelDocs.Pages.GoogleDoc;
 using NovelDocs.Pages.NovelEdit;
@@ -11,7 +10,7 @@ internal sealed class SupportDocumentDetailsController : Controller<SupportDocum
     private readonly IGoogleDocController _googleDocController;
     private SupportDocumentTreeItem _treeItem = null!; //wil be set in the initialize
 
-    public SupportDocumentDetailsController(IDataPersister dataPersister, IGoogleDocController googleDocController, IGoogleDocManager googleDocManager) {
+    public SupportDocumentDetailsController(IDataPersister dataPersister, IGoogleDocController googleDocController) {
         _googleDocController = googleDocController;
     
         ViewModel.PropertyChanged += async (_, _) => {
