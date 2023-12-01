@@ -51,11 +51,21 @@ namespace NovelDocs.Pages.EventBoard {
         }
 
         private void ScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e) {
+            //only accept changes from the scroll bar itself- for some reason, other controls will try to reset it back to zero when we don't want this
+            if (!e.Source.Equals(PlotBoardScrollViewer)) {
+                e.Handled = true;
+                return;
+            }
+
             HorizontalScrollViewer.Width = PlotBoardScrollViewer.ActualWidth - (PlotBoardScrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible ? 18 : 0);
             VerticalScrollViewer.Height = PlotBoardScrollViewer.ActualHeight - (PlotBoardScrollViewer.ComputedHorizontalScrollBarVisibility == Visibility.Visible ? 18 : 0);
 
             HorizontalScrollViewer.ScrollToHorizontalOffset(e.HorizontalOffset);
             VerticalScrollViewer.ScrollToVerticalOffset(e.VerticalOffset);
+        }
+
+        private void VerticalScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e) {
+            PlotBoardScrollViewer.ScrollToVerticalOffset(e.VerticalOffset);
         }
 
         private void EventBoard_OnPreviewMouseMove(object sender, MouseEventArgs e) {

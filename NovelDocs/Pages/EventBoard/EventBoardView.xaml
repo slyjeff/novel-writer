@@ -139,7 +139,8 @@
                           x:Name="VerticalScrollViewer"
                           VerticalScrollBarVisibility="Hidden"
                           HorizontalScrollBarVisibility="Hidden"
-                          VerticalAlignment="Top">
+                          VerticalAlignment="Top"
+                          ScrollChanged="VerticalScrollViewer_OnScrollChanged">
                 <ItemsControl ItemsSource="{Binding Events}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
