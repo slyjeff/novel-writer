@@ -1,10 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using Newtonsoft.Json;
 using NovelDocs.Entity;
+using Timer = System.Timers.Timer;
 
 namespace NovelDocs.Services;
 
@@ -86,7 +88,15 @@ internal sealed class DataPersister : IDataPersister {
         }
 
         var json = JsonConvert.SerializeObject(_data);
-        await File.WriteAllTextAsync(FileName, json);
+        while (true) {
+            try {
+                await File.WriteAllTextAsync(FileName, json);
+                break;
+            } catch (IOException)  {
+                //retry again in a quarter second if we get an io exception
+                Thread.Sleep(250);
+            } 
+        }
     }
 
     private async void SaveNovel(object? sender, ElapsedEventArgs e) {
