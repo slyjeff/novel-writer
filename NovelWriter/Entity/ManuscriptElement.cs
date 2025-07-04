@@ -5,9 +5,10 @@ namespace NovelWriter.Entity;
 
 public enum ManuscriptElementType { Section, Scene }
 
-public sealed class ManuscriptElement : IDocument {
+public sealed class ManuscriptElement : IDocumentOwner {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
+    public int DocumentId { get; set; }
 
     public bool IsChapter { get; set; }
     
@@ -15,13 +16,12 @@ public sealed class ManuscriptElement : IDocument {
 
     public string GoogleDocId { get; set; } = string.Empty;
 
-    public IList<ManuscriptElement> ManuscriptElements = new List<ManuscriptElement>();
+    public List<ManuscriptElement> ManuscriptElements { get; set; } = [];
 
     public Guid? PointOfViewCharacterId { get; set; }
     public string Summary { get; set; } = string.Empty;
-    public IList<PlotPoint> PlotPoints { get; set; } = new List<PlotPoint>();
-    public IList<Guid> CharactersInScene { get; set; } = new List<Guid>();
-    public string RichText { get; set; } = string.Empty;
+    public List<PlotPoint> PlotPoints { get; set; } = [];
+    public List<Guid> CharactersInScene { get; set; } = [];
 }
 
 public static class ManuscriptElementExtensions {

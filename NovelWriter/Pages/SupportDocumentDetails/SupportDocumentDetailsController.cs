@@ -20,11 +20,11 @@ internal sealed class SupportDocumentDetailsController : Controller<SupportDocum
         };
     }
 
-    public void Initialize(SupportDocumentTreeItem treeItem) {
+    public async Task Initialize(SupportDocumentTreeItem treeItem) {
         _treeItem = treeItem;
 
         ViewModel.SetSourceData(treeItem.SupportDocument);
         
-        _richTextEditorController.Show(ViewModel);
+        await _richTextEditorController.Show(ViewModel);
     }
 }

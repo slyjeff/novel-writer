@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace NovelWriter.Entity; 
 
-public sealed class NovelList {
+public sealed class AppData {
     public string LastOpenedNovel { get; set; } = string.Empty;
-    public List<NovelData> Novels { get; } = [];
+    public List<NovelData> Novels { get; set;  } = [];
 }
 
 public sealed class NovelData {

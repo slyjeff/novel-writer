@@ -16,6 +16,7 @@ using NovelWriter.Pages.SupportDocumentDetails;
 using NovelWriter.Pages.TypesettingOptions;
 using NovelWriter.Services;
 using Task = System.Threading.Tasks.Task;
+// ReSharper disable AsyncVoidMethod
 
 namespace NovelWriter.Pages.NovelEdit; 
 
@@ -192,7 +193,7 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     }
 
 
-    private void ManuscriptElementSelected(ManuscriptElementTreeItem treeItem) {
+    private async void ManuscriptElementSelected(ManuscriptElementTreeItem treeItem) {
         if (treeItem.ManuscriptElement.Type == ManuscriptElementType.Section) {
             var novelDetailsController = _serviceProvider.CreateInstance<SectionDetailsController>();
             novelDetailsController.Initialize(treeItem);
@@ -202,7 +203,7 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         }
 
         var sceneDetailsController = _serviceProvider.CreateInstance<SceneDetailsController>();
-        sceneDetailsController.Initialize(treeItem);
+        await sceneDetailsController.Initialize(treeItem);
         ViewModel.EditDataView = sceneDetailsController.View;
         ViewModel.ContentView = _richTextEditorController.View;
     }
@@ -212,20 +213,19 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         ViewModel.EditDataView = null;
     }
 
-    private void CharacterSelected(CharacterTreeItem treeItem) {
+    private async void CharacterSelected(CharacterTreeItem treeItem) {
         var characterDetailsController = _serviceProvider.CreateInstance<CharacterDetailsController>();
-        characterDetailsController.Initialize(treeItem);
+        await characterDetailsController.Initialize(treeItem);
         ViewModel.EditDataView = characterDetailsController.View;
         ViewModel.ContentView = _richTextEditorController.View;
     }
 
-    private void SupportDocumentSelected(SupportDocumentTreeItem treeItem) {
+    private async void SupportDocumentSelected(SupportDocumentTreeItem treeItem) {
         var supportDocumentDetailsController = _serviceProvider.CreateInstance<SupportDocumentDetailsController>();
-        supportDocumentDetailsController.Initialize(treeItem);
+        await supportDocumentDetailsController.Initialize(treeItem);
         ViewModel.EditDataView = supportDocumentDetailsController.View;
         ViewModel.ContentView = _richTextEditorController.View;
     }
-
 
     private async Task AddManuscriptElement(ManuscriptElementTreeItem? parent, ManuscriptElement newManuscriptElement) {
         var newTreeItem = new ManuscriptElementTreeItem(newManuscriptElement, ViewModel, ManuscriptElementSelected) {

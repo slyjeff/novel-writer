@@ -41,6 +41,7 @@
     <PackageReference Include="cef.sdk" Version="117.2.2" />
     <PackageReference Include="Google.Apis.Docs.v1" Version="1.62.1.3193" />
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.62.0.3155" />
+    <PackageReference Include="LiteDB" Version="5.0.21" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

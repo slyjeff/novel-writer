@@ -1,6 +1,6 @@
 ﻿namespace NovelWriter.Entity; 
 
-public interface IDocument {
+public interface IDocumentOwner {
+    int DocumentId { get; set; }
     string Name { get; set; }
-    string RichText { get; set; }
 }

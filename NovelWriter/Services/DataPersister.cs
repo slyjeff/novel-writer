@@ -1,9 +1,10 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using LiteDB;
 using NovelWriter.Entity;
+using Document = NovelWriter.Entity.Document;
+using Task = System.Threading.Tasks.Task;
 
 namespace NovelWriter.Services;
 
@@ -11,17 +12,43 @@ public interface IDataPersister {
     Novel CurrentNovel { get; }
     Task AddNovel();
     public Task Save();
-    public NovelList NovelList { get; }
+    public Task SaveDocumentContent(IDocumentOwner documentOwner, string content);
+    public Task<string> GetDocumentContent(IDocumentOwner documentOwner);
+    public AppData AppData { get; }
     Task<bool> OpenNovel(NovelData? novelData = null);
     void CloseNovel();
     bool IsSaving { get; }
 }
 
-internal sealed class DataPersister : IDataPersister {
-    private const string NovelListFileName = "data.nd";
-    private NovelList? _novelList;
+internal sealed class DataPersister : IDataPersister, IDisposable {
+    private const string DatabaseFileName = "novelwriter.db";
+    private readonly LiteDatabase _db = new(DatabaseFileName);
     private OpenedNovel? _currentlyOpenedNovel;
 
+    private AppData? _appData;
+    public AppData AppData {
+        get { return _appData ??= LoadData(); }
+    }
+
+    private ILiteCollection<Novel>? _novels;
+
+    private ILiteCollection<Novel> Novels {
+        get { return _novels ??= _db.GetCollection<Novel>("novels"); }
+    }
+
+    
+    private ILiteCollection<Document>? _documents;
+
+    private ILiteCollection<Document> Documents {
+        get { return _documents ??= _db.GetCollection<Document>("documents"); }
+    }
+
+    private ILiteCollection<DocumentVersion>? _documentVersions;
+    private ILiteCollection<DocumentVersion> DocumentVersions {
+        get { return _documentVersions ??= _db.GetCollection<DocumentVersion>("document_versions"); }
+    }
+    
+    
     public Novel CurrentNovel => _currentlyOpenedNovel?.Novel ?? throw new Exception("Attempted to access novel when there is not open novel.");
 
     public async Task AddNovel() {
@@ -31,87 +58,140 @@ internal sealed class DataPersister : IDataPersister {
             Name = novel.Name,
         };
 
-        NovelList.Novels.Add(novelData);
+        AppData.Novels.Add(novelData);
 
         await Save();
 
         _currentlyOpenedNovel = new OpenedNovel(novelData, novel);
-        NovelList.LastOpenedNovel = novel.Name;
+        AppData.LastOpenedNovel = novel.Name;
     }
 
     public async Task Save() {
-        if (_novelList == null) {
+        if (_appData == null) {
             return;
         }
 
-        await SaveNovel();
-        await SaveNovelList();
+        await Task.Run(() => {
+            IsSaving = true;
+            try {
+                SaveNovel();
+                SaveNovelList();
+            } finally {
+                IsSaving = false;
+            }
+        });
     }
 
-    private async Task SaveNovel() {
+    public async Task SaveDocumentContent(IDocumentOwner documentOwner, string content) {
+        await Task.Run(() => {
+            if (!_db.BeginTrans())
+                throw new InvalidOperationException("Could not begin transaction");
+
+            try {
+                Document? document = null;
+                if (documentOwner.DocumentId > 0) {
+                    document = Documents.FindById(documentOwner.DocumentId);
+                }
+
+                if (document == null) {
+                    CreateDocument(documentOwner, content);
+                } else {
+                    UpdateDocument(document, content);
+                }
+                
+                _db.Commit();
+            } catch {
+                _db.Rollback();
+                throw;
+            }
+        });
+    }
+
+    private void CreateDocument(IDocumentOwner documentOwner, string content) {
+        var document = new Document { Content = content };
+        Documents.Insert(document);
+    
+        documentOwner.DocumentId = document.Id;
+        if (_currentlyOpenedNovel != null) {
+            Novels.Upsert(_currentlyOpenedNovel.Novel);
+        }
+
+        var documentVersion = new DocumentVersion { DocumentId = document.Id, Content = content };
+        DocumentVersions.Insert(documentVersion);
+    }
+
+    private void UpdateDocument(Document document, string content) {
+        document.Content = content;
+        document.ModifiedDate = DateTime.UtcNow;
+        Documents.Update(document);
+
+        var currentVersion = DocumentVersions
+            .Query()
+            .Where(x => x.DocumentId == document.Id)
+            .OrderByDescending(x => x.Version)
+            .FirstOrDefault() ?? new DocumentVersion {
+            Version = 0,
+            VersionDate = DateTime.MinValue
+        };
+
+        if (currentVersion.VersionDate > DateTime.UtcNow.AddMinutes(-5)) {
+            return;
+        }
+
+        var documentVersion = new DocumentVersion {
+            DocumentId = document.Id,
+            Content = content,
+            Version = currentVersion.Version + 1
+        };
+        DocumentVersions.Insert(documentVersion);
+    }
+    
+    public async Task<string> GetDocumentContent(IDocumentOwner documentOwner) {
+        return await Task.Run(() => {
+            if (documentOwner.DocumentId == 0) {
+                return string.Empty;
+            }
+            
+            var document = Documents.FindById(documentOwner.DocumentId);
+            return document == null ? string.Empty : document.Content;
+        });
+    }
+
+    private void SaveNovel() {
         if (_currentlyOpenedNovel == null) {
             return;
         }
 
         var novelData = _currentlyOpenedNovel.NovelData;
-        var originalFilename = novelData.FileName;
         novelData.Name = _currentlyOpenedNovel.Novel.Name;
         novelData.LastModified = DateTime.Now;
-        NovelList.LastOpenedNovel = novelData.Name;
+        AppData.LastOpenedNovel = novelData.Name;
 
-        await WriteFile(novelData.FileName, _currentlyOpenedNovel.Novel);
-        
-        if (originalFilename != novelData.FileName) {
-            File.Delete(originalFilename);
-        }
+        Novels.Upsert(_currentlyOpenedNovel.Novel);
     }
 
-    private async Task SaveNovelList() {
-        await WriteFile(NovelListFileName, _novelList);
-    }
-
-    private async Task WriteFile(string path, object? data) {
-        const int maxRetries = 3;
-        const int baseDelayMs = 100;
-    
-        if (data == null) {
+    private void SaveNovelList() {
+        if (_appData == null) {
             return;
         }
-
-        var json = JsonConvert.SerializeObject(data);
-        for (var attempt = 0; attempt <= maxRetries; attempt++) {
-            try {
-                await File.WriteAllTextAsync(path, json);
-                return;
-            }
-            catch (Exception) when (attempt < maxRetries) {
-                await Task.Delay(baseDelayMs * (int)Math.Pow(2, attempt));
-            }
-        }
         
-        throw new IOException($"Failed to save {path} after {maxRetries} attempts");
+        var appData = _db.GetCollection<AppData>("app_data");
+        appData.Upsert(_appData);
     }
 
     public async Task<bool> OpenNovel(NovelData? novelData = null) {
         if (novelData == null) {
-            novelData = NovelList.Novels.FirstOrDefault(x => x.Name == NovelList.LastOpenedNovel);
-            if (novelData == null) {
+            novelData = AppData.Novels.FirstOrDefault(x => x.Name == AppData.LastOpenedNovel);
+            if (novelData == null)
+            {
                 return false;
             }
         }
 
-        var novel = new Novel { Name = novelData.Name };
-        if (File.Exists(novelData.FileName)) {
-            var json = await File.ReadAllTextAsync(novelData.FileName);
-            novel = JsonConvert.DeserializeObject<Novel>(json);
-            if (novel == null) {
-                return false;
-            }
-        }
+        var novel = await Task.Run(() => Novels.FindOne(x => x.Name == novelData.Name)) ?? new Novel { Name = novelData.Name };
 
         _currentlyOpenedNovel = new OpenedNovel(novelData, novel);
-
-        NovelList.LastOpenedNovel = novel.Name;
+        AppData.LastOpenedNovel = novel.Name;
         
         return true;
     }
@@ -120,23 +200,19 @@ internal sealed class DataPersister : IDataPersister {
         _currentlyOpenedNovel = null;
     }
 
-    public bool IsSaving => false;
+    public bool IsSaving { get; private set; }
 
-    public NovelList NovelList {
-        get { return _novelList ??= LoadData(); }
-    }
-
-    private static NovelList LoadData() {
-        if (!File.Exists(NovelListFileName)) {
-            return new NovelList();
-        }
-
-        var fileText = File.ReadAllText(NovelListFileName);
-        return JsonConvert.DeserializeObject<NovelList>(fileText) ?? new NovelList();
+    private AppData LoadData() {
+        var novelLists = _db.GetCollection<AppData>("app_data");
+        return novelLists.FindOne(Query.All()) ?? new AppData();
     }
 
     private class OpenedNovel(NovelData novelData, Novel novel) {
         public NovelData NovelData { get; } = novelData;
         public Novel Novel { get; } = novel;
+    }
+
+    public void Dispose() {
+        _db.Dispose();
     }
 }

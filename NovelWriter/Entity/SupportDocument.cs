@@ -1,7 +1,6 @@
 ﻿namespace NovelWriter.Entity; 
 
-public sealed class SupportDocument : IDocument {
+public sealed class SupportDocument : IDocumentOwner {
     public string Name { get; set; } = string.Empty;
-    public string GoogleDocId { get; set; } = string.Empty;
-    public string RichText { get; set; } = string.Empty;
+    public int DocumentId { get; set; }
 }

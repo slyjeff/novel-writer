@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using NovelWriter.PageControls;
 using NovelWriter.Pages.NovelEdit;
 using NovelWriter.Pages.RichTextEditor;
@@ -44,11 +45,11 @@ internal sealed class CharacterDetailsController : Controller<CharacterDetailsVi
         ViewModel.OnPropertyChanged(nameof(ViewModel.ImageUriSource));
     }
 
-    public void Initialize(CharacterTreeItem treeItem) {
+    public async Task Initialize(CharacterTreeItem treeItem) {
         _treeItem = treeItem;
 
         ViewModel.SetSourceData(treeItem.Character);
         
-        _richTextEditorController.Show(ViewModel);
+        await _richTextEditorController.Show(ViewModel);
     }
 }

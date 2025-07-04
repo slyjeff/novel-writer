@@ -19,7 +19,7 @@ internal sealed class NovelSelectController : Controller<NovelSelectView, NovelS
             new(null)
         };
 
-        foreach (var novel in dataPersister.NovelList.Novels.OrderByDescending(x => x.LastModified)) {
+        foreach (var novel in dataPersister.AppData.Novels.OrderByDescending(x => x.LastModified)) {
             ViewModel.Novels.Add(new NovelSelectAction(novel));
         }
     }

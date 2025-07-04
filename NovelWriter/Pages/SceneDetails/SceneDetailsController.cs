@@ -14,9 +14,9 @@ internal sealed class SceneDetailsController : Controller<SceneDetailsView, Scen
     private readonly IRichTextEditorController _richTextEditorController;
     private ManuscriptElementTreeItem _treeItem = null!; //will be set in the initializer
 
-    public SceneDetailsController(IDataPersister dataPersister, IRichTextEditorController googleDocController) {
+    public SceneDetailsController(IDataPersister dataPersister, IRichTextEditorController richTextEditorController) {
         _dataPersister = dataPersister;
-        _richTextEditorController = googleDocController;
+        _richTextEditorController = richTextEditorController;
 
         ViewModel.PropertyChanged += async (_, e) => {
             await dataPersister.Save();
@@ -33,7 +33,7 @@ internal sealed class SceneDetailsController : Controller<SceneDetailsView, Scen
         }
     }
 
-    public void Initialize(ManuscriptElementTreeItem treeItem) {
+    public async Task Initialize(ManuscriptElementTreeItem treeItem) {
         _treeItem = treeItem;
 
         ViewModel.SetSourceData(treeItem.ManuscriptElement);
@@ -45,7 +45,7 @@ internal sealed class SceneDetailsController : Controller<SceneDetailsView, Scen
             viewModel.SelectedCharacter = ViewModel.AvailableCharacters.FirstOrDefault(x => x.Id == characterInScene);
         }
     
-        _richTextEditorController.Show(ViewModel);
+        await _richTextEditorController.Show(ViewModel);
     }
 
     private async void CharacterInSceneChanged(object? sender, PropertyChangedEventArgs e) {
