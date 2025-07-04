@@ -131,8 +131,7 @@
                     Orientation="Vertical">
             <TextBlock Text="Scene Details:"/>
 
-            <controls:BulletListControl Height="400"
-                                        Width="330"
+            <controls:BulletListControl Width="330"
                                         ReadOnly="False"
                                         Margin="10, 0, 10, 0"
                                         Text="{Binding Details, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>

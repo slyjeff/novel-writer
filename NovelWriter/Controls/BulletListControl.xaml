@@ -40,8 +40,9 @@
         </ItemsControl>
         <TextBox
             Margin="0"
+            Height="400"
             x:Name="TextBox"
-            Visibility="Hidden"
+            Visibility="Collapsed"
             FontSize="16"
             Foreground="White"
             TextWrapping="Wrap"

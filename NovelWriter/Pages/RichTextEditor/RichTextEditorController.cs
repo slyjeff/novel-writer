@@ -15,10 +15,11 @@ public interface IRichTextEditorController {
 
 internal sealed class RichTextEditorController : Controller<RichTextEditorView, RichTextEditorViewModel>, IRichTextEditorController {
     private IRichTextViewModel? _richTextViewModel;
+    private bool _loading;
     
     public RichTextEditorController(IDataPersister dataPersister) {
         View.RichTextBox.TextChanged += async (_, _) => {
-            if (_richTextViewModel == null) {
+            if (_richTextViewModel == null || _loading) {
                 return;
             }
             
@@ -28,9 +29,20 @@ internal sealed class RichTextEditorController : Controller<RichTextEditorView, 
     }
     
     public void Show(IRichTextViewModel richTextViewModel) {
-        _richTextViewModel = richTextViewModel;
-        using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(_richTextViewModel.RichText))) {
-            View.RichTextBox.Selection.Load(ms, DataFormats.Rtf);
+        try {
+            _loading = true;
+            View.RichTextBox.Document.Blocks.Clear();
+
+            _richTextViewModel = richTextViewModel;
+            if (_richTextViewModel.RichText == string.Empty) {
+                return;
+            }
+
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(_richTextViewModel.RichText))) {
+                View.RichTextBox.Selection.Load(ms, DataFormats.Rtf);
+            }
+        } finally {
+            _loading = false;
         }
     }
     
@@ -38,7 +50,7 @@ internal sealed class RichTextEditorController : Controller<RichTextEditorView, 
         var textRange = new TextRange(richTextBox.Document.ContentStart, richTextBox.Document.ContentEnd);
         using (var memory = new MemoryStream()) {
             textRange.Save(memory, DataFormats.Rtf);
-            return System.Text.Encoding.UTF8.GetString(memory.ToArray());
+            return Encoding.UTF8.GetString(memory.ToArray());
         }
     }
 }

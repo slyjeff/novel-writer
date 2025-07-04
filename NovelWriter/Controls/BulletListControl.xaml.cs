@@ -22,18 +22,18 @@ public partial class BulletListControl {
     private void UpdateVisibility() {
         if (ReadOnly) {
             ItemsControl.Visibility = Visibility.Visible;
-            TextBox.Visibility = Visibility.Hidden;
+            TextBox.Visibility = Visibility.Collapsed;
             return;
         }
 
         if (_isEditing || string.IsNullOrEmpty(Text)) {
-            ItemsControl.Visibility = Visibility.Hidden;
+            ItemsControl.Visibility = Visibility.Collapsed;
             TextBox.Visibility = Visibility.Visible;
             return;
         }
 
         ItemsControl.Visibility = Visibility.Visible;
-        TextBox.Visibility = Visibility.Hidden;
+        TextBox.Visibility = Visibility.Collapsed;
     }
 
     private static void OnTextChange(DependencyObject d, DependencyPropertyChangedEventArgs e) {

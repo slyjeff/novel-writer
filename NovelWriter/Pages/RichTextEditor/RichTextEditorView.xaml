@@ -16,7 +16,10 @@
             Padding="20"
             Background="Black"
             CaretBrush="White"
-            >
+            FontFamily="Arial"
+            HorizontalScrollBarVisibility="Hidden"
+            VerticalScrollBarVisibility="Auto"
+            ScrollViewer.CanContentScroll="True">
             <RichTextBox.Resources>
                 <Style TargetType="{x:Type Paragraph}">
                     <Setter Property="Margin" Value="0,0,0,20"/>
@@ -28,7 +31,7 @@
                     <Setter Property="Foreground" Value="White"/>
                 </Style>
             </RichTextBox.Resources>
-
+            
             <!--<RichTextBox.ToolBar>
                 <ToolBar>
                     <ToggleButton Command="EditingCommands.ToggleBold" ToolTip="Bold">
