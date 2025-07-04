@@ -4,8 +4,10 @@ using System.Collections.Generic;
 namespace NovelWriter.Entity; 
 
 public sealed class AppData {
+    public int Id { get; set; }
     public string LastOpenedNovel { get; set; } = string.Empty;
     public List<NovelData> Novels { get; set;  } = [];
+    public int NavigatorWidth { get; set; } = 550;
 }
 
 public sealed class NovelData {

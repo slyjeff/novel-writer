@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Windows;
 using NovelWriter.Entity;
 using NovelWriter.PageControls;
 
@@ -16,6 +17,8 @@ public abstract class NovelEditViewModel : ViewModel {
         SupportDocuments.ViewModel = this;
     }
 
+    public virtual GridLength NavigatorWidth { get; set; } = new GridLength(550);
+    
     public virtual object? ContentView { get; set; } = null;
 
     public virtual object? EditDataView { get; set; } = null;

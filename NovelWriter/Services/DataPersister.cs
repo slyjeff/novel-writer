@@ -75,7 +75,7 @@ internal sealed class DataPersister : IDataPersister, IDisposable {
             IsSaving = true;
             try {
                 SaveNovel();
-                SaveNovelList();
+                SaveAppData();
             } finally {
                 IsSaving = false;
             }
@@ -170,7 +170,7 @@ internal sealed class DataPersister : IDataPersister, IDisposable {
         Novels.Upsert(_currentlyOpenedNovel.Novel);
     }
 
-    private void SaveNovelList() {
+    private void SaveAppData() {
         if (_appData == null) {
             return;
         }
@@ -187,9 +187,17 @@ internal sealed class DataPersister : IDataPersister, IDisposable {
                 return false;
             }
         }
-
+        
+        //var oldNovel = await Task.Run(() => _db.GetCollection<OldNovel>("old_novels").FindOne(x => x.Name == novelData.Name)) ?? new OldNovel { Name = novelData.Name };
         var novel = await Task.Run(() => Novels.FindOne(x => x.Name == novelData.Name)) ?? new Novel { Name = novelData.Name };
-
+        /*
+        novel.Characters = oldNovel.Characters;
+        novel.ManuscriptElements = oldNovel.ManuscriptElements;
+        novel.Events = oldNovel.Events;
+        novel.EventBoardCharacters = oldNovel.EventBoardCharacters;
+        novel.SupportDocuments = oldNovel.SupportDocuments;
+        */
+        
         _currentlyOpenedNovel = new OpenedNovel(novelData, novel);
         AppData.LastOpenedNovel = novel.Name;
         
@@ -203,8 +211,8 @@ internal sealed class DataPersister : IDataPersister, IDisposable {
     public bool IsSaving { get; private set; }
 
     private AppData LoadData() {
-        var novelLists = _db.GetCollection<AppData>("app_data");
-        return novelLists.FindOne(Query.All()) ?? new AppData();
+        var appData = _db.GetCollection<AppData>("app_data");
+        return appData.FindOne(Query.All()) ?? new AppData();
     }
 
     private class OpenedNovel(NovelData novelData, Novel novel) {

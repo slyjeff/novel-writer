@@ -5,6 +5,28 @@ using System.Linq;
 namespace NovelWriter.Entity; 
 
 public sealed class Novel {
+    public int Id { get; set; }
+    public string Name { get; set; } = "New Novel";
+    public string Author { get; set; } = string.Empty;
+    public string CopyrightYear { get; set; } = DateTime.Today.Year.ToString();
+    public Typesetting Typesetting { get; set; } = new Typesetting();
+    
+    public List<ManuscriptElement> ManuscriptElements { get; set; } = [];
+
+    public List<Character> Characters { get; set; } = [];
+
+    public List<Event> Events { get; set; } = [];
+
+    public List<EventBoardCharacter> EventBoardCharacters { get; set; } = [];
+
+    public List<SupportDocument> SupportDocuments { get; set; } = [];
+
+    public Character? FindCharacterById(Guid id) {
+        return Characters.FirstOrDefault(x => x.Id == id);
+    }
+}
+
+public sealed class OldNovel {
     public string Name { get; set; } = "New Novel";
     public string Author { get; set; } = string.Empty;
     public string CopyrightYear { get; set; } = DateTime.Today.Year.ToString();

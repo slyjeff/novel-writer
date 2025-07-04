@@ -35,6 +35,14 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         _msWordManager = msWordManager;
 
         View.OnMoveNovelTreeItem += MoveNovelTreeItem;
+        ViewModel.NavigatorWidth = new GridLength(_dataPersister.AppData.NavigatorWidth);
+        
+        ViewModel.PropertyChanged += async (_, e) => {
+            if (e.PropertyName == nameof(ViewModel.NavigatorWidth)) {
+                _dataPersister.AppData.NavigatorWidth = (int)Math.Round(ViewModel.NavigatorWidth.Value);
+                await dataPersister.Save();    
+            }
+        };
     }
 
     private Novel Novel => _dataPersister.CurrentNovel;
