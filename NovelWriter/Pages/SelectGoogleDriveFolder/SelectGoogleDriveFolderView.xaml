@@ -1,0 +1,57 @@
+﻿<Window x:Class="NovelWriter.Pages.SelectGoogleDriveFolder.SelectGoogleDriveFolderView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:selectGoogleDriveFolder="clr-namespace:NovelWriter.Pages.SelectGoogleDriveFolder"
+        mc:Ignorable="d"
+        Title="Select Google Drive Folder"
+        WindowStartupLocation="CenterOwner"
+        SizeToContent="WidthAndHeight"
+        Background="Black"
+        MinWidth="350"
+        d:DataContext="{d:DesignInstance selectGoogleDriveFolder:SelectGoogleDriveFolderViewModel}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ListView Grid.Row="0"
+                  Margin="10"
+                  ItemsSource="{Binding DirectoryList}"
+                  SelectedItem="{Binding SelectedDirectory, Mode=TwoWay}"
+                  FontSize="14"
+                  Foreground="White"
+                  Background="Black"
+                  MouseDoubleClick="ListView_OnMouseDoubleClick">
+        </ListView>
+
+        <Grid Grid.Row="1" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+            <Button Grid.Column="1"
+                    Margin="10, 0, 5, 10"
+                    Height="30"
+                    FontSize="14"
+                    Width="100"
+                    IsEnabled="{Binding IsDirectorySelected}"
+                    Content="Select Folder"
+                    Command="{Binding SelectDirectory}"/>
+            
+            <Button Grid.Column="2"
+                    Margin="5, 0, 10, 10"
+                    Height="30"
+                    FontSize="14"
+                    Width="100"
+                    Content="Cancel"
+                    IsCancel="True"/>
+        </Grid>
+    </Grid>
+</Window>

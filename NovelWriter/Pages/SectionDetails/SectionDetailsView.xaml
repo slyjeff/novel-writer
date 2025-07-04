@@ -1,0 +1,46 @@
+﻿<UserControl x:Class="NovelWriter.Pages.SectionDetails.SectionDetailsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:sectionDetails="clr-namespace:NovelWriter.Pages.SectionDetails"
+             mc:Ignorable="d"
+             Background="#373737" d:DataContext="{d:DesignInstance sectionDetails:SectionDetailsViewModel}">
+    <UserControl.Resources>
+        <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource EditPanelTextBlock}" />
+        <Style TargetType="{x:Type TextBox}"  BasedOn="{StaticResource EditPanelTextBox}" />
+        <Style TargetType="{x:Type CheckBox}"  BasedOn="{StaticResource EditPanelCheckBox}" />
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0"
+                    Orientation="Vertical">
+            <TextBlock Text="Name:"/>
+            <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+
+        <CheckBox Grid.Row="1"
+                  Content="Chapter"
+                  IsChecked="{Binding IsChapter, Mode=TwoWay}" />
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Vertical">
+            <TextBlock Text="Summary:"/>
+
+            <TextBox TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalAlignment="Left"
+                     Height="400"
+                     Text="{Binding Summary, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+
+
+</Grid>
+</UserControl>
