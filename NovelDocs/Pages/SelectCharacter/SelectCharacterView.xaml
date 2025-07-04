@@ -1,0 +1,69 @@
+﻿<Window x:Class="NovelDocs.Pages.SelectCharacter.SelectCharacterView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:selectCharacter="clr-namespace:NovelDocs.Pages.SelectCharacter"
+        mc:Ignorable="d"
+        Title="Select Character"
+        WindowStartupLocation="CenterOwner"
+        SizeToContent="WidthAndHeight"
+        Background="Black"
+        MinWidth="350" d:DataContext="{d:DesignInstance selectCharacter:SelectCharacterViewModel}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ComboBox Grid.Row="0"
+                  HorizontalAlignment="Left"
+                  BorderThickness="1"
+                  BorderBrush="White"
+                  Width="350"
+                  Height="50"
+                  Margin="10"
+                  Foreground="Black"
+                  ItemsSource="{Binding AvailableCharacters}"
+                  SelectedItem="{Binding SelectedCharacter, Mode=TwoWay}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="{Binding ImageUriSource}" Width="50" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Name}" 
+                                   Margin="10, 0, 10, 0"
+                                   FontSize="16" 
+                                   Foreground="Black" 
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <Grid Grid.Row="1" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+            <Button Grid.Column="1"
+                    Margin="10, 0, 5, 10"
+                    Height="30"
+                    FontSize="14"
+                    Width="100"
+                    Content="OK"
+                    Command="{Binding Ok}"/>
+
+            <Button Grid.Column="2"
+                    Margin="5, 0, 10, 10"
+                    Height="30"
+                    FontSize="14"
+                    Width="100"
+                    Content="Cancel"
+                    IsCancel="True"/>
+        </Grid>
+</Grid>
+</Window>
