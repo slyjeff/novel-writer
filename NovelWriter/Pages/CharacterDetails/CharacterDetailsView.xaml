@@ -29,25 +29,5 @@
                Width="330"
                Source="{Binding Path=ImageUriSource}" AllowDrop="True"
                Drop="UIElement_OnDrop"/>
-
-        <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
-        <Button Grid.Row="2"
-                Grid.Column="0"
-                VerticalAlignment="Bottom"
-                HorizontalAlignment="Left"
-                Height="40"
-                Margin="10"
-                Visibility="{Binding IsDocumentAssigned, Converter={StaticResource IsVisible}}"
-                Command="{Binding UnassignGoogleDocId}">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Unassign Doc"
-                           FontSize="16"
-                           VerticalAlignment="Center" />
-                <Image Margin="10, 0, 10, 0"
-                       Width="20"
-                       Source="/Images/Delete.png"
-                       VerticalAlignment="Center" />
-            </StackPanel>
-        </Button>
     </Grid>
 </UserControl>

@@ -2,8 +2,6 @@
 
 namespace NovelWriter.Pages.CharacterDetails;
 
-public abstract class CharacterDetailsViewModel : GoogleDocViewModel<Character> {
+public abstract class CharacterDetailsViewModel : RichTextViewModel<Character> {
     public string ImageUriSource => SourceData.ImageUriSource;
-
-    public override GoogleDocType GoogleDocType => GoogleDocType.Character;
 }

@@ -9,24 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Images\Add.png" />
-    <None Remove="Images\Chapter.png" />
-    <None Remove="Images\Character.png" />
-    <None Remove="Images\Character2.png" />
-    <None Remove="Images\Characters.png" />
-    <None Remove="Images\Close.png" />
-    <None Remove="Images\Delete.png" />
-    <None Remove="Images\Document.png" />
-    <None Remove="Images\Documents.png" />
-    <None Remove="Images\EmptyDocument.png" />
-    <None Remove="Images\Events.png" />
-    <None Remove="Images\Manuscript.png" />
-    <None Remove="Images\MicrosoftWord.png" />
-    <None Remove="Images\Scene.png" />
-    <None Remove="Images\Section.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <COMReference Include="Microsoft.Office.Interop.Word">
       <WrapperTool>tlbimp</WrapperTool>
       <VersionMinor>7</VersionMinor>
@@ -57,7 +39,6 @@
 
   <ItemGroup>
     <PackageReference Include="cef.sdk" Version="117.2.2" />
-    <PackageReference Include="CefSharp.Wpf.NETCore" Version="117.2.20" />
     <PackageReference Include="Google.Apis.Docs.v1" Version="1.62.1.3193" />
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.62.0.3155" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />

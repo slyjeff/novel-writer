@@ -3,13 +3,15 @@ using System.Collections.Generic;
 
 namespace NovelWriter.Entity; 
 
-public sealed class Data {
+public sealed class NovelList {
     public string LastOpenedNovel { get; set; } = string.Empty;
-    public IList<NovelData> Novels { get; set; } = new List<NovelData>();
+    public List<NovelData> Novels { get; } = [];
 }
 
 public sealed class NovelData {
     public string Name { get; set; } = "New Novel";
+    
+    public string FileName => $"{Name.ToLower().Replace(" ", "-")}.nd";
+
     public DateTime LastModified { get; set; } = DateTime.Now;
-    public string GoogleId { get; set; } = string.Empty;
 }

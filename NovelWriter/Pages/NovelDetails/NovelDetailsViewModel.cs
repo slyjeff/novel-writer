@@ -24,9 +24,4 @@ public abstract class NovelDetailsViewModel : ViewModel {
         get => _novel.CopyrightYear;
         set => _novel.CopyrightYear = value;
     }
-
-    public virtual string GoogleDriveFolder {
-        get => _novel.GoogleDriveFolder;
-        set => _novel.GoogleDriveFolder = value;
-    }
 }

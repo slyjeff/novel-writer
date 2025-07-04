@@ -1,24 +1,21 @@
 ﻿using System;
 using System.IO;
-using System.Threading.Tasks;
-using NovelWriter.Managers;
 using NovelWriter.PageControls;
-using NovelWriter.Pages.GoogleDoc;
 using NovelWriter.Pages.NovelEdit;
+using NovelWriter.Pages.RichTextEditor;
 using NovelWriter.Services;
 
 namespace NovelWriter.Pages.CharacterDetails; 
 
+// ReSharper disable once ClassNeverInstantiated.Global
 internal sealed class CharacterDetailsController : Controller<CharacterDetailsView, CharacterDetailsViewModel> {
     private readonly IDataPersister _dataPersister;
-    private readonly IGoogleDocController _googleDocController;
-    private readonly IGoogleDocManager _googleDocManager;
+    private readonly IRichTextEditorController _richTextEditorController;
     private CharacterTreeItem _treeItem = null!; //wil be set in the initialize
 
-    public CharacterDetailsController(IDataPersister dataPersister, IGoogleDocController googleDocController, IGoogleDocManager googleDocManager) {
+    public CharacterDetailsController(IDataPersister dataPersister, IRichTextEditorController richTextEditorController) {
         _dataPersister = dataPersister;
-        _googleDocController = googleDocController;
-        _googleDocManager = googleDocManager;
+        _richTextEditorController = richTextEditorController;
 
         ViewModel.PropertyChanged += async (_, _) => {
             await dataPersister.Save();
@@ -36,7 +33,9 @@ internal sealed class CharacterDetailsController : Controller<CharacterDetailsVi
 
         var imagePath = Path.Combine(imagesDirectory, fileName);
         File.Copy(path, imagePath);
-        await _googleDocManager.UploadImage(imagePath);
+        
+        //TODO: store image
+        //await _googleDocManager.UploadImage(imagePath);
 
         _treeItem.Character.ImageUriSource = imagePath;
         await _dataPersister.Save();
@@ -45,16 +44,11 @@ internal sealed class CharacterDetailsController : Controller<CharacterDetailsVi
         ViewModel.OnPropertyChanged(nameof(ViewModel.ImageUriSource));
     }
 
-    public async Task Initialize(CharacterTreeItem treeItem) {
+    public void Initialize(CharacterTreeItem treeItem) {
         _treeItem = treeItem;
 
         ViewModel.SetSourceData(treeItem.Character);
         
-        await _googleDocController.Show(ViewModel);
-    }
-
-    [Command]
-    public void UnassignGoogleDocId() {
-        ViewModel.GoogleDocId = string.Empty;
+        _richTextEditorController.Show(ViewModel);
     }
 }

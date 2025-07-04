@@ -5,8 +5,8 @@ using NovelWriter.Initialization;
 using NovelWriter.Managers;
 using NovelWriter.PageControls;
 using NovelWriter.Pages.CompileStatus;
-using NovelWriter.Pages.GoogleDoc;
 using NovelWriter.Pages.Main;
+using NovelWriter.Pages.RichTextEditor;
 using NovelWriter.Services;
 
 namespace NovelWriter; 
@@ -25,8 +25,7 @@ public partial class App {
     private static void AddServices(IServiceCollection services) {
         services
             .AddSingleton<IDataPersister, DataPersister>()
-            .AddSingleton<IGoogleDocController, GoogleDocController>()
-            .AddTransient<IGoogleDocManager, GoogleDocManager>()
+            .AddSingleton<IRichTextEditorController, RichTextEditorController>()
             .AddTransient<IGoogleDocService, GoogleDocService>()
             .AddTransient<IMsWordManager, MsWordManager>()
             .AddTransient<ICompileStatusController, CompileStatusController>()

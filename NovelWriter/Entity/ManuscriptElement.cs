@@ -5,7 +5,7 @@ namespace NovelWriter.Entity;
 
 public enum ManuscriptElementType { Section, Scene }
 
-public sealed class ManuscriptElement : IGoogleDocItem {
+public sealed class ManuscriptElement : IDocument {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
 
@@ -21,6 +21,7 @@ public sealed class ManuscriptElement : IGoogleDocItem {
     public string Summary { get; set; } = string.Empty;
     public IList<PlotPoint> PlotPoints { get; set; } = new List<PlotPoint>();
     public IList<Guid> CharactersInScene { get; set; } = new List<Guid>();
+    public string RichText { get; set; } = string.Empty;
 }
 
 public static class ManuscriptElementExtensions {

@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Windows;
-using Microsoft.Win32;
 using NovelWriter.Entity;
 using NovelWriter.Extensions;
 using NovelWriter.Managers;
 using NovelWriter.PageControls;
 using NovelWriter.Pages.CharacterDetails;
 using NovelWriter.Pages.EventBoard;
-using NovelWriter.Pages.GoogleDoc;
 using NovelWriter.Pages.NovelDetails;
+using NovelWriter.Pages.RichTextEditor;
 using NovelWriter.Pages.SceneDetails;
 using NovelWriter.Pages.SectionDetails;
 using NovelWriter.Pages.SupportDocumentDetails;
@@ -21,19 +19,18 @@ using Task = System.Threading.Tasks.Task;
 
 namespace NovelWriter.Pages.NovelEdit; 
 
+// ReSharper disable ClassNeverInstantiated.Global
 internal sealed class NovelEditController : Controller<NovelEditView, NovelEditViewModel> {
     private readonly IServiceProvider _serviceProvider;
     private readonly IDataPersister _dataPersister;
-    private readonly IGoogleDocController _googleDocController;
-    private readonly IGoogleDocManager _googleDocManager;
+    private readonly IRichTextEditorController _richTextEditorController;
     private readonly IMsWordManager _msWordManager;
     private Action _novelClosed = null!; //will never be null because initialize will always be called
 
-    public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister, IGoogleDocController googleDocController, IGoogleDocManager googleDocManager, IMsWordManager msWordManager) {
+    public NovelEditController(IServiceProvider serviceProvider, IDataPersister dataPersister, IRichTextEditorController richTextEditorController, IMsWordManager msWordManager) {
         _serviceProvider = serviceProvider;
         _dataPersister = dataPersister;
-        _googleDocController = googleDocController;
-        _googleDocManager = googleDocManager;
+        _richTextEditorController = richTextEditorController;
         _msWordManager = msWordManager;
 
         View.OnMoveNovelTreeItem += MoveNovelTreeItem;
@@ -195,7 +192,7 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
     }
 
 
-    private async void ManuscriptElementSelected(ManuscriptElementTreeItem treeItem) {
+    private void ManuscriptElementSelected(ManuscriptElementTreeItem treeItem) {
         if (treeItem.ManuscriptElement.Type == ManuscriptElementType.Section) {
             var novelDetailsController = _serviceProvider.CreateInstance<SectionDetailsController>();
             novelDetailsController.Initialize(treeItem);
@@ -205,9 +202,9 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         }
 
         var sceneDetailsController = _serviceProvider.CreateInstance<SceneDetailsController>();
-        await sceneDetailsController.Initialize(treeItem);
+        sceneDetailsController.Initialize(treeItem);
         ViewModel.EditDataView = sceneDetailsController.View;
-        ViewModel.ContentView = _googleDocController.View;
+        ViewModel.ContentView = _richTextEditorController.View;
     }
 
     private void CharactersSelected() {
@@ -215,18 +212,18 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         ViewModel.EditDataView = null;
     }
 
-    private async void CharacterSelected(CharacterTreeItem treeItem) {
+    private void CharacterSelected(CharacterTreeItem treeItem) {
         var characterDetailsController = _serviceProvider.CreateInstance<CharacterDetailsController>();
-        await characterDetailsController.Initialize(treeItem);
+        characterDetailsController.Initialize(treeItem);
         ViewModel.EditDataView = characterDetailsController.View;
-        ViewModel.ContentView = _googleDocController.View;
+        ViewModel.ContentView = _richTextEditorController.View;
     }
 
-    private async void SupportDocumentSelected(SupportDocumentTreeItem treeItem) {
+    private void SupportDocumentSelected(SupportDocumentTreeItem treeItem) {
         var supportDocumentDetailsController = _serviceProvider.CreateInstance<SupportDocumentDetailsController>();
-        await supportDocumentDetailsController.Initialize(treeItem);
+        supportDocumentDetailsController.Initialize(treeItem);
         ViewModel.EditDataView = supportDocumentDetailsController.View;
-        ViewModel.ContentView = _googleDocController.View;
+        ViewModel.ContentView = _richTextEditorController.View;
     }
 
 
@@ -248,58 +245,16 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         newTreeItem.IsSelected = true;
     }
 
-    internal string GetSystemDefaultBrowser() {
-        var regKey = Registry.ClassesRoot.OpenSubKey("HTTP\\shell\\open\\command", false);
-        if (regKey == null) {
-            return string.Empty;
-        }
-
-        try {
-            //get rid of the enclosing quotes
-            var nameObject = regKey.GetValue(null);
-            if (nameObject == null) {
-                return string.Empty;
-            }
-
-            var name = nameObject.ToString()?.ToLower().Replace("" + (char)34, "");
-            if (name == null) {
-                return string.Empty;
-            }
-
-            //check to see if the value ends with .exe (this way we can remove any command line arguments)
-            if (!name.EndsWith("exe")) {
-                //get rid of all command line arguments (anything after the .exe must go)
-                name = name[..(name.LastIndexOf(".exe", StringComparison.Ordinal) + 4)];
-            }
-
-            return name;
-        }
-        catch (Exception ex) {
-            MessageBox.Show($"ERROR: An exception of type: {ex.GetType()} occurred in method: {ex.TargetSite} in the following module: {this.GetType()}");
-            return string.Empty;
-        } finally {
-            regKey.Close();
-        }
-    }
-
-    private void CloseAfterFinishedSaving() {
-        _dataPersister.OnFinishedSaving -= CloseAfterFinishedSaving;
-        View.Dispatcher.Invoke(() => {
-            _dataPersister.CloseNovel();
-            _novelClosed.Invoke();
-        });
-    }
-
     [Command]
-    public async Task CompileNovel() {
+    public Task CompileNovel() {
         if (MessageBox.Show($"Compile Novel {Novel.Name}?", "Confirmation", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
-            return;
+            return Task.CompletedTask;
         }
-
-        await _googleDocManager.Compile();
+        return Task.CompletedTask;
+        /*await _googleDocManager.Compile();
 
         var address = $"https://docs.google.com/document/d/{Novel.ManuscriptId}";
-        Process.Start(GetSystemDefaultBrowser(), address);
+        Process.Start(GetSystemDefaultBrowser(), address);*/
     }
 
     [Command]
@@ -312,10 +267,6 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
 
     [Command]
     public void CloseNovel() {
-        if (_dataPersister.IsSaving) {
-            _dataPersister.OnFinishedSaving += CloseAfterFinishedSaving;
-            return;
-        }
         _dataPersister.CloseNovel();
         _novelClosed.Invoke();
     }

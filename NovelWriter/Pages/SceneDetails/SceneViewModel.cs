@@ -8,9 +8,7 @@ using NovelWriter.Entity;
 
 namespace NovelWriter.Pages.SceneDetails;
 
-public abstract class SceneDetailsViewModel : GoogleDocViewModel<ManuscriptElement> {
-    public override GoogleDocType GoogleDocType => GoogleDocType.Scene;
-
+public abstract class SceneDetailsViewModel : RichTextViewModel<ManuscriptElement> {
     public IList<Character> AvailableCharacters { get; set; } = new List<Character>() { new() { Name = "Unassigned", ImageUriSource = "/images/delete.png"} };
 
     private Character? _pointOfViewCharacter;

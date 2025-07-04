@@ -2,20 +2,21 @@
 using System.Linq;
 using System.Threading.Tasks;
 using NovelWriter.PageControls;
-using NovelWriter.Pages.GoogleDoc;
 using NovelWriter.Pages.NovelEdit;
+using NovelWriter.Pages.RichTextEditor;
 using NovelWriter.Services;
 
 namespace NovelWriter.Pages.SceneDetails; 
 
+// ReSharper disable once ClassNeverInstantiated.Global
 internal sealed class SceneDetailsController : Controller<SceneDetailsView, SceneDetailsViewModel> {
     private readonly IDataPersister _dataPersister;
-    private readonly IGoogleDocController _googleDocController;
-    private ManuscriptElementTreeItem _treeItem = null!; //wil be set in the initialize
+    private readonly IRichTextEditorController _richTextEditorController;
+    private ManuscriptElementTreeItem _treeItem = null!; //will be set in the initializer
 
-    public SceneDetailsController(IDataPersister dataPersister, IGoogleDocController googleDocController) {
+    public SceneDetailsController(IDataPersister dataPersister, IRichTextEditorController googleDocController) {
         _dataPersister = dataPersister;
-        _googleDocController = googleDocController;
+        _richTextEditorController = googleDocController;
 
         ViewModel.PropertyChanged += async (_, e) => {
             await dataPersister.Save();
@@ -32,7 +33,7 @@ internal sealed class SceneDetailsController : Controller<SceneDetailsView, Scen
         }
     }
 
-    public async Task Initialize(ManuscriptElementTreeItem treeItem) {
+    public void Initialize(ManuscriptElementTreeItem treeItem) {
         _treeItem = treeItem;
 
         ViewModel.SetSourceData(treeItem.ManuscriptElement);
@@ -44,7 +45,7 @@ internal sealed class SceneDetailsController : Controller<SceneDetailsView, Scen
             viewModel.SelectedCharacter = ViewModel.AvailableCharacters.FirstOrDefault(x => x.Id == characterInScene);
         }
     
-        await _googleDocController.Show(ViewModel);
+        _richTextEditorController.Show(ViewModel);
     }
 
     private async void CharacterInSceneChanged(object? sender, PropertyChangedEventArgs e) {
@@ -78,11 +79,6 @@ internal sealed class SceneDetailsController : Controller<SceneDetailsView, Scen
         viewModel.PropertyChanged += CharacterInSceneChanged;
 
         return viewModel;
-    }
-
-    [Command]
-    public void UnassignGoogleDocId() {
-        ViewModel.GoogleDocId = string.Empty;
     }
 
     [Command]

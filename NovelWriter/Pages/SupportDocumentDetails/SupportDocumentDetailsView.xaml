@@ -22,25 +22,5 @@
             <TextBlock Text="Name:"/>
             <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
-
-        <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
-        <Button Grid.Row="1"
-                Grid.Column="0"
-                VerticalAlignment="Bottom"
-                HorizontalAlignment="Left"
-                Height="40"
-                Margin="10"
-                Visibility="{Binding IsDocumentAssigned, Converter={StaticResource IsVisible}}"
-                Command="{Binding UnassignGoogleDocId}">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Unassign Doc"
-                           FontSize="16"
-                           VerticalAlignment="Center" />
-                <Image Margin="10, 0, 10, 0"
-                       Width="20"
-                       Source="/Images/Delete.png"
-                       VerticalAlignment="Center" />
-            </StackPanel>
-        </Button>
     </Grid>
 </UserControl>

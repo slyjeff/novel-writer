@@ -3,26 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NovelWriter.Entity;
-using NovelWriter.Extensions;
 using NovelWriter.PageControls;
-using NovelWriter.Pages.SelectGoogleDriveFolder;
 using NovelWriter.Services;
 
 namespace NovelWriter.Pages.NovelSelect; 
 
+// ReSharper disable once ClassNeverInstantiated.Global
 internal sealed class NovelSelectController : Controller<NovelSelectView, NovelSelectViewModel> {
     private readonly IDataPersister _dataPersister;
-    private readonly IServiceProvider _serviceProvider;
-    private Func<Task>? _openNovel;
+    private Action? _openNovel;
     
-    public NovelSelectController(IDataPersister dataPersister, IServiceProvider serviceProvider) {
+    public NovelSelectController(IDataPersister dataPersister) {
         _dataPersister = dataPersister;
-        _serviceProvider = serviceProvider;
         ViewModel.Novels = new List<NovelSelectAction> {
             new(null)
         };
 
-        foreach (var novel in dataPersister.Data.Novels.OrderByDescending(x => x.LastModified)) {
+        foreach (var novel in dataPersister.NovelList.Novels.OrderByDescending(x => x.LastModified)) {
             ViewModel.Novels.Add(new NovelSelectAction(novel));
         }
     }
@@ -37,22 +34,16 @@ internal sealed class NovelSelectController : Controller<NovelSelectView, NovelS
             if (!await _dataPersister.OpenNovel(novelData)) {
                 return;
             }
-            await _openNovel();
+            _openNovel();
             return;
         }
 
-        var controller = _serviceProvider.CreateInstance<SelectGoogleDriveFolderController>();
-        await controller.Initialize();
-        if (controller.View.ShowDialog() != true || controller.ViewModel.SelectedDirectory == null) {
-            return;
-        }
+        await _dataPersister.AddNovel();
 
-        await _dataPersister.AddNovel(controller.ViewModel.SelectedDirectory);
-
-        await _openNovel();
+        _openNovel();
     }
 
-    public void Initialize(Func<Task> openNovel) {
+    public void Initialize(Action openNovel) {
         _openNovel = openNovel;
     }
 }

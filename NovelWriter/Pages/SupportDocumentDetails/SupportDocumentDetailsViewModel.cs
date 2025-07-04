@@ -2,6 +2,4 @@
 
 namespace NovelWriter.Pages.SupportDocumentDetails;
 
-public abstract class SupportDocumentDetailsViewModel : GoogleDocViewModel<SupportDocument> {
-    public override GoogleDocType GoogleDocType => GoogleDocType.SupportDocument;
-}
+public abstract class SupportDocumentDetailsViewModel : RichTextViewModel<SupportDocument>;
