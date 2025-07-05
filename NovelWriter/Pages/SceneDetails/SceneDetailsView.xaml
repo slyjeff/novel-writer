@@ -42,7 +42,7 @@
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Margin="5, 0, 30, 0"
-                               Text="{Binding Name}" 
+                               Text="{Binding Character.Name}" 
                                FontSize="16" 
                                Foreground="Black" 
                                VerticalAlignment="Center" />
@@ -55,7 +55,7 @@
                    HorizontalAlignment="Left"
                    Width="330"
                    Visibility="{Binding IsPointOfViewCharacterSelected, Converter={StaticResource IsVisible}}"
-                   Source="{Binding Path=PointOfViewCharacter.ImageUriSource}" AllowDrop="True"/>
+                   Source="{Binding Path=PointOfViewCharacter.Image}" AllowDrop="True"/>
         </StackPanel>
 
         <StackPanel Grid.Row="2"
@@ -108,7 +108,7 @@
                                       SelectedItem="{Binding SelectedCharacter, Mode=TwoWay}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Name}" 
+                                        <TextBlock Text="{Binding Character.Name}" 
                                                    FontSize="16" 
                                                    Foreground="Black" 
                                                    VerticalAlignment="Center" />
@@ -120,7 +120,7 @@
                                    HorizontalAlignment="Center"
                                    Height="165"
                                    Visibility="{Binding IsCharacterSelected, Converter={StaticResource IsVisible}}"
-                                   Source="{Binding Path=SelectedCharacter.ImageUriSource}" AllowDrop="True"/>
+                                   Source="{Binding Path=SelectedCharacter.Image}" AllowDrop="True"/>
                         </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

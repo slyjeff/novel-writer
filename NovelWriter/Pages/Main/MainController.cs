@@ -12,15 +12,15 @@ namespace NovelWriter.Pages.Main;
 internal sealed class MainController(IDataPersister dataPersister, IServiceProvider serviceProvider) : Controller<MainView, MainViewModel> {
     public async Task Initialize() {
         if (await dataPersister.OpenNovel()) {
-            OpenNovel();
+            await OpenNovel();
         } else {
             ShowNovelSelector();
         }
     }
 
-    private void OpenNovel() {
+    private async Task OpenNovel() {
         var novelEditController = serviceProvider.CreateInstance<NovelEditController>();
-        novelEditController.Initialize(ShowNovelSelector);
+        await novelEditController.Initialize(ShowNovelSelector);
         ViewModel.Page = novelEditController.View;
     }
 

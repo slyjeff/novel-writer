@@ -5,7 +5,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:eventDetails="clr-namespace:NovelWriter.Pages.EventDetails"
              xmlns:controls="clr-namespace:NovelWriter.Controls"
-             xmlns:controls1="clr-namespace:NovelWriter.Controls"
              mc:Ignorable="d" 
              Background="#373737" d:DataContext="{d:DesignInstance eventDetails:EventDetailsViewModel}">
     <UserControl.Resources>
@@ -55,7 +54,7 @@
                     Visibility="{Binding CanEditSceneDetails, Converter={StaticResource IsVisible}}">
             <TextBlock Text="Scene Details:"/>
 
-            <controls1:BulletListControl Height="400"
+            <controls:BulletListControl Height="400"
                                         Width="330"
                                         ReadOnly="False"
                                         Margin="10, 0, 10, 0"

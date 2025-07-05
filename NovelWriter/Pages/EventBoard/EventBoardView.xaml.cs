@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using NovelWriter.Entity;
+using NovelWriter.Pages.SceneDetails;
 
 namespace NovelWriter.Pages.EventBoard {
     public partial class EventBoardView {
@@ -14,7 +15,7 @@ namespace NovelWriter.Pages.EventBoard {
         }
 
         public event Action<EventViewModel>? OnEventDoubleClicked;
-        public event Action<Character, Character>? OnMoveCharacter;
+        public event Action<CharacterWithImage, CharacterWithImage>? OnMoveCharacter;
         public event Action<EventViewModel, EventViewModel>? OnMoveEvent;
 
         private void Border_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e) {

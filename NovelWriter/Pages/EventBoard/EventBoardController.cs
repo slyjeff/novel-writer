@@ -9,6 +9,7 @@ using NovelWriter.Extensions;
 using NovelWriter.PageControls;
 using NovelWriter.Pages.CharacterEventDetails;
 using NovelWriter.Pages.EventDetails;
+using NovelWriter.Pages.SceneDetails;
 using NovelWriter.Pages.SelectCharacter;
 using NovelWriter.Services;
 
@@ -32,7 +33,7 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
 
     private Novel Novel => _dataPersister.CurrentNovel;
 
-    public void Initialize(Action<object?> showEditDataView, Action<Guid> showScene) {
+    public async Task Initialize(Action<object?> showEditDataView, Action<Guid> showScene) {
         _showEditDataView = showEditDataView;
         _showScene = showScene;
         ViewModel.Events = new ObservableCollection<EventViewModel>(Novel.Events.Select(CreateEventViewModel));
@@ -41,8 +42,9 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
             if (character == null) {
                 continue;
             }
+            var image = await _dataPersister.GetImage(character, 50);
 
-            ViewModel.CharacterHeaders.Add(character);
+            ViewModel.CharacterHeaders.Add(new CharacterWithImage(character, image));
         }
         RefreshEventDetails();
     }
@@ -53,7 +55,7 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
         return viewModel;
     }
 
-    private EventDetailsViewModel CreateEventDetailsViewModel(Event novelEvent, Character character) {
+    private EventDetailsViewModel CreateEventDetailsViewModel(Event novelEvent, CharacterWithImage character) {
         var viewModel = new EventDetailsViewModel(novelEvent, character);
         viewModel.PropertyChanged += SelectableViewModelPropertyChanged;
         viewModel.PropertyChanged += EventDetailsViewModelPropertyChanged;
@@ -70,7 +72,7 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
 
             while (ViewModel.CharacterEventDetails.Count < ViewModel.CharacterHeaders.Count) {
                 var character = ViewModel.CharacterHeaders[ViewModel.CharacterEventDetails.Count];
-                ViewModel.CharacterEventDetails.Add(new CharacterEventDetailsViewModel(character));
+                ViewModel.CharacterEventDetails.Add(new CharacterEventDetailsViewModel(character.Character, character.Image));
             }
 
             foreach (var characterEventDetails in ViewModel.CharacterEventDetails) {
@@ -85,7 +87,7 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
                     var eventDetailsViewModel = CreateEventDetailsViewModel(novelEvent, characterEventDetails.Character);
                     characterEventDetails.EventDetails.Add(eventDetailsViewModel);
 
-                    var eventBoardCharacter = Novel.EventBoardCharacters.FirstOrDefault(x => x.Id == characterEventDetails.Character.Id);
+                    var eventBoardCharacter = Novel.EventBoardCharacters.FirstOrDefault(x => x.Id == characterEventDetails.Character.Character.Id);
 
                     var eventDetails = eventBoardCharacter?.EventDetails.FirstOrDefault(x => x.EventId == novelEvent.Id);
                     if (eventDetails == null) {
@@ -103,7 +105,7 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
 
     private bool _changingSelected;
     
-    private void SelectableViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e) {
+    private async void SelectableViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e) {
         if (e.PropertyName != nameof(SelectableViewModel.IsSelected)) {
             return;
         }
@@ -141,7 +143,7 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
                     }
 
                     var characterEventDetailsController = _serviceProvider.CreateInstance<CharacterEventDetailsController>();
-                    characterEventDetailsController.Initialize(characterEventDetails.Character, eventDetails);
+                    await characterEventDetailsController.Initialize(characterEventDetails.Character, eventDetails);
                     _showEditDataView?.Invoke(characterEventDetailsController.View);
                 }
             }
@@ -163,7 +165,7 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
             return;
         }
 
-        var eventBoardCharacter = Novel.EventBoardCharacters.FirstOrDefault(x => x.Id == viewModel.Character.Id);
+        var eventBoardCharacter = Novel.EventBoardCharacters.FirstOrDefault(x => x.Id == viewModel.Character.Character.Id);
         if (eventBoardCharacter == null) {
             return;
         }
@@ -184,9 +186,9 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
         await _dataPersister.Save();
     }
 
-    private void MoveCharacter(Character characterToMove, Character moveBeforeCharacter) {
-        var eventBoardCharacterToMove = Novel.EventBoardCharacters.First(x => x.Id == characterToMove.Id);
-        var eventBoardCharacterToMoveBefore = Novel.EventBoardCharacters.First(x => x.Id == moveBeforeCharacter.Id);
+    private void MoveCharacter(CharacterWithImage characterToMove, CharacterWithImage moveBeforeCharacter) {
+        var eventBoardCharacterToMove = Novel.EventBoardCharacters.First(x => x.Id == characterToMove.Character.Id);
+        var eventBoardCharacterToMoveBefore = Novel.EventBoardCharacters.First(x => x.Id == moveBeforeCharacter.Character.Id);
 
         Novel.EventBoardCharacters.Remove(eventBoardCharacterToMove);
         Novel.EventBoardCharacters.Insert(Novel.EventBoardCharacters.IndexOf(eventBoardCharacterToMoveBefore), eventBoardCharacterToMove);
@@ -276,13 +278,14 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
     [Command]
     public async Task AddCharacter() {
         var selectCharacterController = _serviceProvider.CreateInstance<SelectCharacterController>();
+        await selectCharacterController.Initialize();
         if (selectCharacterController.View.ShowDialog() != true || selectCharacterController.ViewModel.SelectedCharacter == null) {
             return;
         }
 
         var selectedCharacter = selectCharacterController.ViewModel.SelectedCharacter;
         ViewModel.CharacterHeaders.Add(selectedCharacter);
-        Novel.EventBoardCharacters.Add(new EventBoardCharacter { Id = selectedCharacter.Id });
+        Novel.EventBoardCharacters.Add(new EventBoardCharacter { Id = selectedCharacter.Character.Id });
 
         RefreshEventDetails();
 
@@ -290,12 +293,12 @@ internal sealed class EventBoardController : Controller<EventBoardView, EventBoa
     }
 
     [Command]
-    public async Task DeleteCharacter(Character character) {
-        if (MessageBox.Show($"Remove character {character.Name}?", "Confirm", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
+    public async Task DeleteCharacter(CharacterWithImage character) {
+        if (MessageBox.Show($"Remove character {character.Character.Name}?", "Confirm", MessageBoxButton.YesNo) != MessageBoxResult.Yes) {
             return;
         }
 
-        var eventBoardCharacter = Novel.EventBoardCharacters.FirstOrDefault(x => x.Id == character.Id);
+        var eventBoardCharacter = Novel.EventBoardCharacters.FirstOrDefault(x => x.Id == character.Character.Id);
         if (eventBoardCharacter == null) {
             return;
         }

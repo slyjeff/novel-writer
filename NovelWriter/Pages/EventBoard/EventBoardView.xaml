@@ -5,7 +5,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:eventBoard="clr-namespace:NovelWriter.Pages.EventBoard"
              xmlns:controls="clr-namespace:NovelWriter.Controls"
-             xmlns:controls1="clr-namespace:NovelWriter.Controls"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance eventBoard:EventBoardViewModel}">
     <Grid PreviewMouseMove="EventBoard_OnPreviewMouseMove">
         <Grid.RowDefinitions>
@@ -113,14 +112,15 @@
                                     <StackPanel Orientation="Horizontal" 
                                                 HorizontalAlignment="Left"
                                                 Margin="5, 0, 0, 0">
-                                        <Image Source="{Binding ImageUriSource}" Height ="50" Margin="2" />
+                                        <Image Source="{Binding Image}" Height ="50" Margin="2" />
                                         <TextBlock HorizontalAlignment="Center"
                                                VerticalAlignment="Center"
                                                Margin="5,0,0,0"
                                                FontSize="16"
                                                FontWeight="Bold"
                                                Foreground="White"
-                                               Text="{Binding Name}"/>
+                                               Text="{Binding 
+                                               Character.Name}"/>
                                     </StackPanel>
                                 </Grid>
                             </Border>
@@ -236,7 +236,7 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
-                                            <controls1:BulletListControl Margin="5"
+                                            <controls:BulletListControl Margin="5"
                                                                         Text="{Binding Details}" />
                                         </Border>
                                     </DataTemplate>

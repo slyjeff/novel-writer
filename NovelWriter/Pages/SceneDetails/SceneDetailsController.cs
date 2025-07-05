@@ -25,24 +25,25 @@ internal sealed class SceneDetailsController : Controller<SceneDetailsView, Scen
                 _treeItem.OnPropertyChanged(nameof(ManuscriptElementTreeItem.Name));
             }
         };
-
-        var novel = dataPersister.CurrentNovel;
-
-        foreach (var character in novel.Characters) {
-            ViewModel.AvailableCharacters.Add(character);
-        }
     }
 
     public async Task Initialize(ManuscriptElementTreeItem treeItem) {
         _treeItem = treeItem;
-
+        
         ViewModel.SetSourceData(treeItem.ManuscriptElement);
+        
+        var novel = _dataPersister.CurrentNovel;
+        
+        foreach (var character in novel.Characters) {
+            var image = await _dataPersister.GetImage(character, 330);
+            ViewModel.AvailableCharacters.Add(new CharacterWithImage(character, image));
+        }
 
-        ViewModel.PointOfViewCharacter = ViewModel.AvailableCharacters.FirstOrDefault(x => x.Id == treeItem.ManuscriptElement.PointOfViewCharacterId) ?? ViewModel.AvailableCharacters.First();
+        ViewModel.PointOfViewCharacter = ViewModel.AvailableCharacters.FirstOrDefault(x => x.Character.Id == treeItem.ManuscriptElement.PointOfViewCharacterId) ?? ViewModel.AvailableCharacters.First();
 
         foreach (var characterInScene in treeItem.ManuscriptElement.CharactersInScene.ToList()) {
             var viewModel = CreateCharacterInSceneViewModel();
-            viewModel.SelectedCharacter = ViewModel.AvailableCharacters.FirstOrDefault(x => x.Id == characterInScene);
+            viewModel.SelectedCharacter = ViewModel.AvailableCharacters.FirstOrDefault(x => x.Character.Id == characterInScene);
         }
     
         await _richTextEditorController.Show(ViewModel);
@@ -53,6 +54,10 @@ internal sealed class SceneDetailsController : Controller<SceneDetailsView, Scen
             return;
         }
 
+        await UpdateCharactersInScene();
+    }
+
+    private async Task UpdateCharactersInScene() {
         var charactersInScene = _treeItem.ManuscriptElement.CharactersInScene;
         charactersInScene.Clear();
         foreach (var characterInSceneViewModel in ViewModel.CharactersInScene) {
@@ -60,16 +65,17 @@ internal sealed class SceneDetailsController : Controller<SceneDetailsView, Scen
                 continue;
             }
 
-            charactersInScene.Add(characterInSceneViewModel.SelectedCharacter!.Id);
+            charactersInScene.Add(characterInSceneViewModel.SelectedCharacter!.Character.Id);
         }
 
         await _dataPersister.Save();
     }
 
-    public void CharacterRemovedFromScene(CharacterInSceneViewModel characterInSceneViewModel) {
+    public async void CharacterRemovedFromScene(CharacterInSceneViewModel characterInSceneViewModel) {
         characterInSceneViewModel.CharacterRemoved -= CharacterRemovedFromScene;
         characterInSceneViewModel.PropertyChanged -= CharacterInSceneChanged;
         ViewModel.CharactersInScene.Remove(characterInSceneViewModel);
+        await UpdateCharactersInScene();
     }
 
     private CharacterInSceneViewModel CreateCharacterInSceneViewModel() {

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 using LiteDB;
 using NovelWriter.Entity;
 using Document = NovelWriter.Entity.Document;
@@ -14,6 +16,8 @@ public interface IDataPersister {
     public Task Save();
     public Task SaveDocumentContent(IDocumentOwner documentOwner, string content);
     public Task<string> GetDocumentContent(IDocumentOwner documentOwner);
+    public Task SaveImage(IImageOwner imageOwner, BitmapImage image);
+    public Task<BitmapImage> GetImage(IImageOwner imageOwner, int decodePixelWidth);
     public AppData AppData { get; }
     Task<bool> OpenNovel(NovelData? novelData = null);
     void CloseNovel();
@@ -35,7 +39,6 @@ internal sealed class DataPersister : IDataPersister, IDisposable {
     private ILiteCollection<Novel> Novels {
         get { return _novels ??= _db.GetCollection<Novel>("novels"); }
     }
-
     
     private ILiteCollection<Document>? _documents;
 
@@ -157,6 +160,73 @@ internal sealed class DataPersister : IDataPersister, IDisposable {
         });
     }
 
+    public async Task SaveImage(IImageOwner imageOwner, BitmapImage image) {
+        await Task.Run(() => {
+            if (!_db.BeginTrans())
+                throw new InvalidOperationException("Could not begin transaction");
+
+            try {
+                // Convert BitmapImage to stream
+                using var memoryStream = new MemoryStream();
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(image));
+                encoder.Save(memoryStream);
+                memoryStream.Position = 0;
+
+                if (imageOwner.ImageId != Guid.Empty) {
+                    var id = imageOwner.ImageId.ToString();
+                    _db.FileStorage.Delete(id);
+                
+                    _db.FileStorage.Upload(id, id, memoryStream);
+                } else {
+                    var id = Guid.NewGuid();
+                    _db.FileStorage.Upload(id.ToString(), id.ToString(), memoryStream);
+                    
+                    imageOwner.ImageId = id;
+                    if (_currentlyOpenedNovel != null) {
+                        Novels.Upsert(_currentlyOpenedNovel.Novel);
+                    }
+                }
+
+                _db.Commit();
+            } catch {
+                _db.Rollback();
+                throw;
+            }
+        });
+    }
+
+    public async Task<BitmapImage> GetImage(IImageOwner imageOwner, int decodePixelWidth) {
+        if (imageOwner.ImageId == Guid.Empty) {
+            return new BitmapImage (
+                new Uri(new Random().Next(0, 2) == 1 ? "/images/Character.png" : "/images/Character2.png", UriKind.Relative)
+            );
+        }
+        
+        var image =  await Task.Run(() => {
+            var id = imageOwner.ImageId.ToString();
+            var file = _db.FileStorage.FindById(id);
+            if (file == null) {
+                return null;
+            }
+
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.StreamSource = file.OpenRead();
+            image.DecodePixelWidth = decodePixelWidth;
+            image.DecodePixelHeight = decodePixelWidth;
+            image.EndInit();
+            image.Freeze();
+
+            return image;
+        }) ?? new BitmapImage (
+            new Uri(new Random().Next(0, 2) == 1 ? "/images/Character.png" : "/images/Character2.png", UriKind.Relative)
+        );
+
+        return image;
+    }
+    
     private void SaveNovel() {
         if (_currentlyOpenedNovel == null) {
             return;
@@ -188,15 +258,7 @@ internal sealed class DataPersister : IDataPersister, IDisposable {
             }
         }
         
-        //var oldNovel = await Task.Run(() => _db.GetCollection<OldNovel>("old_novels").FindOne(x => x.Name == novelData.Name)) ?? new OldNovel { Name = novelData.Name };
         var novel = await Task.Run(() => Novels.FindOne(x => x.Name == novelData.Name)) ?? new Novel { Name = novelData.Name };
-        /*
-        novel.Characters = oldNovel.Characters;
-        novel.ManuscriptElements = oldNovel.ManuscriptElements;
-        novel.Events = oldNovel.Events;
-        novel.EventBoardCharacters = oldNovel.EventBoardCharacters;
-        novel.SupportDocuments = oldNovel.SupportDocuments;
-        */
         
         _currentlyOpenedNovel = new OpenedNovel(novelData, novel);
         AppData.LastOpenedNovel = novel.Name;

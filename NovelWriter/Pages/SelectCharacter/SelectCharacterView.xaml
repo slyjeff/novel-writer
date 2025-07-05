@@ -29,8 +29,8 @@
             <ComboBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                        <Image Source="{Binding ImageUriSource}" Width="50" VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding Name}" 
+                        <Image Source="{Binding Image}" Width="50" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Character.Name}" 
                                    Margin="10, 0, 10, 0"
                                    FontSize="16" 
                                    Foreground="Black" 

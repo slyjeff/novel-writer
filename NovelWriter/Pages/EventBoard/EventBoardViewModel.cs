@@ -3,13 +3,15 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using NovelWriter.Entity;
 using NovelWriter.PageControls;
+using NovelWriter.Pages.SceneDetails;
 
 namespace NovelWriter.Pages.EventBoard; 
 
 public abstract class EventBoardViewModel : ViewModel {
-    public virtual ObservableCollection<Character> CharacterHeaders { get; set; } = new();
+    public virtual ObservableCollection<CharacterWithImage> CharacterHeaders { get; set; } = new();
     public virtual ObservableCollection<EventViewModel> Events { get; set; } = new();
     public virtual ObservableCollection<CharacterEventDetailsViewModel> CharacterEventDetails { get; set; } = new();
 }
@@ -51,17 +53,17 @@ public class EventViewModel : SelectableViewModel {
 }
 
 public class CharacterEventDetailsViewModel {
-    public CharacterEventDetailsViewModel(Character character) {
-        Character = character;
+    public CharacterEventDetailsViewModel(Character character, BitmapImage image) {
+        Character = new CharacterWithImage(character, image);
     }
 
-    public Character Character { get; }
+    public CharacterWithImage Character { get; }
     public ObservableCollection<EventDetailsViewModel> EventDetails { get; set; } = new();
 }
 
 public class EventDetailsViewModel : SelectableViewModel {
 
-    public EventDetailsViewModel(Event novelEvent, Character character) {
+    public EventDetailsViewModel(Event novelEvent, CharacterWithImage character) {
         Event = novelEvent;
         Character = character;
     }
@@ -89,5 +91,5 @@ public class EventDetailsViewModel : SelectableViewModel {
     public SolidColorBrush Background => Details.Any() ? new SolidColorBrush(Colors.Indigo) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#373737"));
 
     public Event Event { get; }
-    public Character Character { get; }
+    public CharacterWithImage Character { get; }
 }

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
-using NovelWriter.Entity;
 using NovelWriter.PageControls;
+using NovelWriter.Pages.SceneDetails;
 
 namespace NovelWriter.Pages.SelectCharacter; 
 
 public abstract class SelectCharacterViewModel : ViewModel {
-    public virtual IList<Character> AvailableCharacters { get; set; } = new List<Character>();
-    public virtual Character? SelectedCharacter { get; set; }
+    public virtual List<CharacterWithImage> AvailableCharacters { get; set; } = [];
+    public virtual CharacterWithImage? SelectedCharacter { get; set; }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Media.Imaging;
 using NovelWriter.Entity;
 using NovelWriter.Extensions;
 using NovelWriter.Managers;
@@ -47,7 +48,7 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
 
     private Novel Novel => _dataPersister.CurrentNovel;
 
-    public void Initialize(Action novelClosed) {
+    public async Task Initialize(Action novelClosed) {
         _novelClosed = novelClosed;
 
         ViewModel.Manuscript.Selected += ManuscriptSelected;
@@ -62,7 +63,8 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         ViewModel.Manuscript.IsSelected = true;
 
         foreach (var character in Novel.Characters) {
-            var treeItem = new CharacterTreeItem(character, ViewModel, CharacterSelected);
+            var image = await _dataPersister.GetImage(character, 50);
+            var treeItem = new CharacterTreeItem(character, image, ViewModel, CharacterSelected);
             ViewModel.Characters.Characters.Add(treeItem);
         }
 
@@ -170,9 +172,9 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         ViewModel.ContentView = null;
     }
 
-    private void EventBoardSelected() {
+    private async void EventBoardSelected() {
         var eventBoardController = _serviceProvider.CreateInstance<EventBoardController>();
-        eventBoardController.Initialize(ShowEditDataView, ShowScene);
+        await eventBoardController.Initialize(ShowEditDataView, ShowScene);
         ViewModel.EditDataView = null;
         ViewModel.ContentView = eventBoardController.View;
     }
@@ -325,8 +327,13 @@ internal sealed class NovelEditController : Controller<NovelEditView, NovelEditV
         };
         Novel.Characters.Add(character);
         await _dataPersister.Save();
+        
+        var defaultImage = new BitmapImage (
+            new Uri(new Random().Next(0, 2) == 1 ? "/images/Character.png" : "/images/Character2.png", UriKind.Relative)
+        );
+        await _dataPersister.SaveImage(character, defaultImage);
 
-        var treeItem = new CharacterTreeItem(character, ViewModel, CharacterSelected);
+        var treeItem = new CharacterTreeItem(character, defaultImage, ViewModel, CharacterSelected);
         ViewModel.Characters.Characters.Add(treeItem);
 
         treeItem.IsSelected = true;

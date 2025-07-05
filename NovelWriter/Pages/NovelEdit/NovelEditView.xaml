@@ -195,7 +195,7 @@
                                 </ContextMenu>
                             </StackPanel.ContextMenu>
                             
-                            <Image Width="50" Source="{Binding ImageUriSource}" />
+                            <Image Width="50" Source="{Binding Image}" />
 
                             <TextBlock FontSize="20"
                                        Margin="10, 0, 0, 0"

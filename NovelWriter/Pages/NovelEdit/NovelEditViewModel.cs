@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media.Imaging;
 using NovelWriter.Entity;
 using NovelWriter.PageControls;
 
@@ -145,17 +146,18 @@ public sealed class ManuscriptElementTreeItem : NovelTreeItem {
 }
 
 public sealed class CharacterTreeItem : NovelTreeItem {
-    public CharacterTreeItem(Character character, NovelEditViewModel viewModel, Action<CharacterTreeItem> selected) {
+    public CharacterTreeItem(Character character, BitmapImage image, NovelEditViewModel viewModel, Action<CharacterTreeItem> selected) {
         ViewModel = viewModel;
         Character = character;
+        Image = image;
         Selected += () => selected(this);
     }
 
     public Character Character { get; }
+    
+    public BitmapImage Image { get; set; }
 
     public override string Name => Character.Name;
-
-    public string ImageUriSource => Character.ImageUriSource;
 }
 
 public sealed class SupportDocumentsTreeItem : NovelTreeItem {

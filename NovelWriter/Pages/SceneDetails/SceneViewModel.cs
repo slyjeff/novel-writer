@@ -4,20 +4,28 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows.Media.Imaging;
 using NovelWriter.Entity;
 
 namespace NovelWriter.Pages.SceneDetails;
 
 public abstract class SceneDetailsViewModel : RichTextViewModel<ManuscriptElement> {
-    public IList<Character> AvailableCharacters { get; set; } = new List<Character>() { new() { Name = "Unassigned", ImageUriSource = "/images/delete.png"} };
+    public List<CharacterWithImage> AvailableCharacters { get; set; } = [
+        new(
+            new Character {
+                Name = "Unassigned",
+            },
+            new BitmapImage(new Uri("/images/delete.png", UriKind.Relative))
+        )
+    ];
 
-    private Character? _pointOfViewCharacter;
-    public virtual Character? PointOfViewCharacter {
+    private CharacterWithImage? _pointOfViewCharacter;
+    public virtual CharacterWithImage? PointOfViewCharacter {
         get => _pointOfViewCharacter;
         set {
             _pointOfViewCharacter = value;
 
-            SourceData.PointOfViewCharacterId = _pointOfViewCharacter?.Id;
+            SourceData.PointOfViewCharacterId = _pointOfViewCharacter?.Character.Id;
 
             OnPropertyChanged(nameof(IsPointOfViewCharacterSelected));
         }
@@ -33,18 +41,24 @@ public abstract class SceneDetailsViewModel : RichTextViewModel<ManuscriptElemen
     public IList<CharacterInSceneViewModel> CharactersInScene { get; } = new ObservableCollection<CharacterInSceneViewModel>();
 }
 
-public sealed class CharacterInSceneViewModel : INotifyPropertyChanged {
-    private readonly Character _removeCharacter = new() { Name = "(Remove)" };
+public class CharacterWithImage(Character character, BitmapImage image) {
+    public Character Character => character;
+    public BitmapImage Image => image;
+}
 
-    public CharacterInSceneViewModel(IEnumerable<Character> availableCharacters) {
+public sealed class CharacterInSceneViewModel : INotifyPropertyChanged {
+    private readonly CharacterWithImage _removeCharacter = new(new Character{ Name = "(Remove)" }, new BitmapImage(new Uri("/images/delete.png", UriKind.Relative)));
+
+    public CharacterInSceneViewModel(IEnumerable<CharacterWithImage> availableCharacters) {
         AvailableCharacters = availableCharacters.ToList();
         AvailableCharacters.Insert(0, _removeCharacter);
+        SelectedCharacter = AvailableCharacters[1]; //unassigned to start with
     }
 
     public event Action<CharacterInSceneViewModel>? CharacterRemoved;
 
-    private Character? _selectedCharacter;
-    public Character? SelectedCharacter {
+    private CharacterWithImage? _selectedCharacter;
+    public CharacterWithImage? SelectedCharacter {
         get => _selectedCharacter;
         set {
             _selectedCharacter = value;
@@ -60,7 +74,7 @@ public sealed class CharacterInSceneViewModel : INotifyPropertyChanged {
 
     public bool IsCharacterSelected => SelectedCharacter != null && SelectedCharacter != _removeCharacter;
 
-    public IList<Character> AvailableCharacters { get; private set; }
+    public IList<CharacterWithImage> AvailableCharacters { get; private set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

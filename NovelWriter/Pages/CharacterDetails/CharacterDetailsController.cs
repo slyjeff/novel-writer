@@ -1,6 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 using NovelWriter.PageControls;
 using NovelWriter.Pages.NovelEdit;
 using NovelWriter.Pages.RichTextEditor;
@@ -27,28 +27,38 @@ internal sealed class CharacterDetailsController : Controller<CharacterDetailsVi
     }
 
     private async void FileDropped(string path) {
-        var imagesDirectory = DirectoryService.LocalImages;
-            
-        var extension = Path.GetExtension(path);
-        var fileName = Guid.NewGuid() + extension;
+        ViewModel.Image = LoadBitmapFromFile(path, 330);
+        _treeItem.Image = LoadBitmapFromFile(path, 50);
+        _treeItem.OnPropertyChanged(nameof(ViewModel.Image));
 
-        var imagePath = Path.Combine(imagesDirectory, fileName);
-        File.Copy(path, imagePath);
-        
-        //TODO: store image
-        //await _googleDocManager.UploadImage(imagePath);
+        var imageToStore = LoadBitmapFromFile(path);
+        await _dataPersister.SaveImage(_treeItem.Character, imageToStore);
+    }
 
-        _treeItem.Character.ImageUriSource = imagePath;
-        await _dataPersister.Save();
+    private BitmapImage LoadBitmapFromFile(string path, int? decodePixelWidth = null) {
+        if (decodePixelWidth == null) {
+            return new BitmapImage(new Uri(path, UriKind.Absolute));
+        }
 
-        _treeItem.OnPropertyChanged(nameof(CharacterTreeItem.ImageUriSource));
-        ViewModel.OnPropertyChanged(nameof(ViewModel.ImageUriSource));
+        var image = new BitmapImage();
+        image.BeginInit();
+        image.UriSource = new Uri(path, UriKind.Absolute);
+        image.DecodePixelWidth = decodePixelWidth.Value;
+        image.DecodePixelHeight = decodePixelWidth.Value;
+        image.CacheOption = BitmapCacheOption.OnLoad;
+        image.EndInit();
+        image.Freeze(); // For cross-thread operations
+        ViewModel.Image = image;
+
+        return image;
     }
 
     public async Task Initialize(CharacterTreeItem treeItem) {
         _treeItem = treeItem;
 
         ViewModel.SetSourceData(treeItem.Character);
+        
+        ViewModel.Image = await _dataPersister.GetImage(treeItem.Character, 330);
         
         await _richTextEditorController.Show(ViewModel);
     }

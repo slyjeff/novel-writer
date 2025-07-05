@@ -27,7 +27,7 @@
         <Image Grid.Row="1" 
                Margin="5"
                Width="330"
-               Source="{Binding Path=ImageUriSource}" AllowDrop="True"
+               Source="{Binding Path=Image}" AllowDrop="True"
                Drop="UIElement_OnDrop"/>
     </Grid>
 </UserControl>

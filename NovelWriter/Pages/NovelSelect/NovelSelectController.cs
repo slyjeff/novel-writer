@@ -11,7 +11,7 @@ namespace NovelWriter.Pages.NovelSelect;
 // ReSharper disable once ClassNeverInstantiated.Global
 internal sealed class NovelSelectController : Controller<NovelSelectView, NovelSelectViewModel> {
     private readonly IDataPersister _dataPersister;
-    private Action? _openNovel;
+    private Func<Task>? _openNovel;
     
     public NovelSelectController(IDataPersister dataPersister) {
         _dataPersister = dataPersister;
@@ -34,16 +34,16 @@ internal sealed class NovelSelectController : Controller<NovelSelectView, NovelS
             if (!await _dataPersister.OpenNovel(novelData)) {
                 return;
             }
-            _openNovel();
+            await _openNovel();
             return;
         }
 
         await _dataPersister.AddNovel();
 
-        _openNovel();
+        await _openNovel();
     }
 
-    public void Initialize(Action openNovel) {
+    public void Initialize(Func<Task> openNovel) {
         _openNovel = openNovel;
     }
 }
