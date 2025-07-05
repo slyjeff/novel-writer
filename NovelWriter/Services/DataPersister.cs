@@ -10,7 +10,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace NovelWriter.Services;
 
-public interface IDataPersister {
+public interface IDataPersister : IAsyncDisposable {
     Novel CurrentNovel { get; }
     Task AddNovel();
     public Task Save();
@@ -24,7 +24,7 @@ public interface IDataPersister {
     bool IsSaving { get; }
 }
 
-internal sealed class DataPersister : IDataPersister, IDisposable {
+internal sealed class DataPersister : IDataPersister {
     private const string DatabaseFileName = "novelwriter.db";
     private readonly LiteDatabase _db = new(DatabaseFileName);
     private OpenedNovel? _currentlyOpenedNovel;
@@ -282,7 +282,8 @@ internal sealed class DataPersister : IDataPersister, IDisposable {
         public Novel Novel { get; } = novel;
     }
 
-    public void Dispose() {
+    public ValueTask DisposeAsync() {
         _db.Dispose();
+        return default;
     }
 }

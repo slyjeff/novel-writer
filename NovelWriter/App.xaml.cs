@@ -28,6 +28,7 @@ public partial class App {
             .AddSingleton<IRichTextEditorController, RichTextEditorController>()
             .AddTransient<IGoogleDocService, GoogleDocService>()
             .AddTransient<IMsWordManager, MsWordManager>()
+            .AddTransient<IThrottledSaver, ThrottledSaver>()
             .AddTransient<ICompileStatusController, CompileStatusController>()
             .AddTransient<ICompileStatusService, CompileStatusService>();
     }
@@ -36,5 +37,9 @@ public partial class App {
         var mainController = _serviceProvider.CreateInstance<MainController>();
         await mainController.Initialize();
         mainController.View.Show();
+    }
+
+    private async void App_Exit(object sender, ExitEventArgs e) {
+        await _serviceProvider.DisposeAsync();
     }
 }
